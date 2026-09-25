@@ -70,6 +70,10 @@ class TreeSearchConfig:
     num_thread: int = 4
     num_iterations: int = DEFAULT_NUM_ITERATIONS
     profile: bool = False
+    # Branch on only 0, 1, 2 and every free transfer, rather than every count up
+    # to --max-transfers; see `branches.transfer_counts`. The same as every count
+    # when --max-transfers is 2, the default.
+    every_transfer_count: bool = False
     strategies: StrategySet = field(default_factory=lambda: DEFAULT_STRATEGIES)
 
 
@@ -199,6 +203,7 @@ def optimize(
                 max_opt_transfers=constraints.max_opt_transfers,
                 chips=chip_schedule.for_gameweek(gameweeks[len(plan)]),
                 max_free_transfers=constraints.max_free_transfers,
+                every_transfer_count=config.every_transfer_count,
             )
             for branch in branches:
                 move, free_transfers, hit_so_far, hit_this_gameweek = branch
@@ -273,6 +278,7 @@ def search_transfer_tree(
         max_opt_transfers=constraints.max_opt_transfers,
         chip_schedule=request.chip_schedule,
         max_free_transfers=constraints.max_free_transfers,
+        every_transfer_count=config.every_transfer_count,
     )
 
     # The workers are forked below, while the progress bars own the terminal:

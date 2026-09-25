@@ -4,6 +4,8 @@ Which moves the tree search branches into, and how many plans that adds up to.
 `next_gameweek_transfers` answers the first and `count_expected_outputs` the second.
 """
 
+import pytest
+
 from airsenal.game.enums import Chip
 from airsenal.optimization.moves import (
     MAX_FREE_TRANSFERS,
@@ -13,7 +15,9 @@ from airsenal.optimization.moves import (
 from airsenal.optimization.transfer_optimizers.branches import (
     count_expected_outputs,
     next_gameweek_transfers,
+    transfer_counts,
 )
+from airsenal.optimization.transfer_optimizers.tree_search import TreeSearchConfig
 
 
 def as_labels(
@@ -667,3 +671,68 @@ def test_count_expected_outputs_with_no_legal_move_is_the_baseline_alone():
     )
     # the baseline falls outside the tree, so the search computes it separately
     assert (count, baseline_excluded) == (1, True)
+
+
+# ------------------- branching on fewer transfer counts -------------------
+
+
+@pytest.mark.parametrize(
+    ("free_transfers", "fewest", "most", "expected"),
+    [
+        (1, 0, 5, [0, 1, 2]),
+        (3, 0, 5, [0, 1, 2, 3]),
+        (5, 1, 5, [1, 2, 5]),
+        # every free transfer is more than may be made
+        (5, 0, 3, [0, 1, 2]),
+        (0, 0, 5, [0, 1, 2]),
+    ],
+)
+def test_only_the_likely_transfer_counts(free_transfers, fewest, most, expected):
+    assert (
+        transfer_counts(free_transfers, fewest, most, every_transfer_count=False)
+        == expected
+    )
+
+
+@pytest.mark.parametrize("free_transfers", range(6))
+@pytest.mark.parametrize("fewest", [0, 1])
+def test_up_to_two_transfers_every_count_is_a_likely_one(free_transfers, fewest):
+    """So with --max-transfers at its default of 2 the tree is unchanged."""
+    assert transfer_counts(
+        free_transfers, fewest, 2, every_transfer_count=False
+    ) == transfer_counts(free_transfers, fewest, 2)
+
+
+def test_the_tree_offers_only_the_likely_counts_when_asked():
+    actual = as_labels(
+        next_gameweek_transfers(
+            4,
+            0,
+            max_total_hit=None,
+            allow_unused_transfers=True,
+            max_opt_transfers=5,
+            max_free_transfers=5,
+            every_transfer_count=False,
+        )
+    )
+    assert [label for label, *_ in actual] == ["0", "1", "2", "4"]
+
+
+def test_the_tree_is_counted_the_way_it_is_searched():
+    """The progress bar's total is the number of plans the workers will finish."""
+    count, _ = count_expected_outputs(
+        2,
+        free_transfers=1,
+        max_total_hit=None,
+        allow_unused_transfers=True,
+        gameweek=1,
+        max_opt_transfers=5,
+        chip_schedule=ChipSchedule(),
+        every_transfer_count=False,
+    )
+    # first gameweek 0, 1 or 2; the second from 2, 1 or 1 free transfers
+    assert count == 3 * 3
+
+
+def test_the_tree_search_branches_on_the_likely_counts_by_default():
+    assert TreeSearchConfig().every_transfer_count is False

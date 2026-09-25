@@ -29,6 +29,29 @@ from airsenal.optimization.squad_score import get_discounted_squad_score
 from airsenal.squad.squad import Squad
 
 
+def transfer_counts(
+    free_transfers: int,
+    fewest: int,
+    most: int,
+    *,
+    every_transfer_count: bool = True,
+) -> list[int]:
+    """
+    How many transfers to consider making in a gameweek, from `fewest` to `most`.
+
+    Every count between them, or with `every_transfer_count` False only 0, 1, 2
+    and `free_transfers`. The two small counts are searched exhaustively and
+    cheaply; the counts between 2 and every free transfer each cost a genetic
+    search and multiply the tree, and are rarely the best use of a bank of
+    transfers.
+    """
+    if every_transfer_count:
+        counts = set(range(fewest, most + 1))
+    else:
+        counts = {0, 1, 2, free_transfers}
+    return sorted(n for n in counts if fewest <= n <= most)
+
+
 def next_gameweek_transfers(
     free_transfers: int,
     hit_so_far: int,
@@ -38,6 +61,8 @@ def next_gameweek_transfers(
     max_opt_transfers: int = DEFAULT_MAX_OPT_TRANSFERS,
     chips: GameweekChips | None = None,
     max_free_transfers: int = MAX_FREE_TRANSFERS,
+    *,
+    every_transfer_count: bool = True,
 ) -> list[tuple[GameweekMove, int, int, int]]:
     """
     The moves - transfers, and any chip played - a strategy may make next gameweek.
@@ -51,6 +76,9 @@ def next_gameweek_transfers(
         allow_unused_transfers: If False and a free transfer would otherwise be
             lost, making none is not offered - which can exclude the baseline
             strategy, so a caller that needs it re-adds it.
+        every_transfer_count: If False, only 0, 1 and 2 transfers and one that
+            uses every free transfer are offered, of those up to
+            `max_opt_transfers`. See `transfer_counts`.
 
     Returns:
         Per move: the move, the free transfers it leaves for the gameweek after,
@@ -59,11 +87,16 @@ def next_gameweek_transfers(
     chips = chips if chips is not None else NO_CHIPS
     chips_played = list(chips_played)
 
-    if not allow_unused_transfers and free_transfers == max_free_transfers:
-        # Force at least one transfer if a free transfer would otherwise be lost.
-        ft_choices = list(range(1, max_opt_transfers + 1))
-    else:
-        ft_choices = list(range(max_opt_transfers + 1))
+    # Force at least one transfer if a free transfer would otherwise be lost.
+    fewest = (
+        1 if not allow_unused_transfers and free_transfers == max_free_transfers else 0
+    )
+    ft_choices = transfer_counts(
+        free_transfers,
+        fewest,
+        max_opt_transfers,
+        every_transfer_count=every_transfer_count,
+    )
 
     if max_total_hit is not None:
         ft_choices = [
@@ -109,6 +142,8 @@ def count_expected_outputs(
     max_opt_transfers: int = DEFAULT_MAX_OPT_TRANSFERS,
     chip_schedule: ChipSchedule | None = None,
     max_free_transfers: int = MAX_FREE_TRANSFERS,
+    *,
+    every_transfer_count: bool = True,
 ) -> tuple[int, bool]:
     """
     Count the strategies a search over `n_gameweeks` gameweeks will visit.
@@ -146,6 +181,7 @@ def count_expected_outputs(
                 allow_unused_transfers=allow_unused_transfers,
                 chips=chip_schedule.for_gameweek(window_gameweek),
                 max_free_transfers=max_free_transfers,
+                every_transfer_count=every_transfer_count,
             )
             new_branches += [
                 (new_ft, new_hit, (*moves, move))
