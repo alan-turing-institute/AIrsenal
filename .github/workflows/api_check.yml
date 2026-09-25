@@ -14,6 +14,9 @@ on:
     - cron: "17 5 * 1,2,3,4,5,8,9,10,11,12 1"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   live:
     name: Live FPL API tests
