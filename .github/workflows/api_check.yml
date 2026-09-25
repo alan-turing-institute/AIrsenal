@@ -18,7 +18,7 @@ jobs:
     name: Live FPL API tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       # uv installs the interpreter named by .python-version.
       - uses: astral-sh/setup-uv@v10.0.1
