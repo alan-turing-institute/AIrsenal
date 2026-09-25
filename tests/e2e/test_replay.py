@@ -315,3 +315,31 @@ def test_a_chip_the_replay_played_is_not_offered_again(pipeline_db, tmp_path):
     # the first gameweek builds a squad from scratch; the second wildcards
     assert chips == [None, "wildcard", None]
     assert optimizer.requests[-1].chips_played == ((2, Chip.WILDCARD),)
+
+
+class FailingOptimizer:
+    def search(self, request):  # noqa: ARG002
+        msg = "the search broke"
+        raise RuntimeError(msg)
+
+
+def test_a_replay_that_fails_partway_keeps_what_it_did(pipeline_db, tmp_path):
+    """The result is rewritten every gameweek, not only at the end."""
+    pipeline = replace(_pipeline(), transfer_optimizer=FailingOptimizer())
+
+    with pytest.raises(RuntimeError, match="the search broke"):
+        replay_season(
+            pipeline,
+            ReplaySettings(
+                gameweek_start=FIRST_GAMEWEEK,
+                gameweek_end=LAST_GAMEWEEK,
+                tag_prefix="test_replay_partial",
+                output_dir=tmp_path,
+            ),
+        )
+
+    written = json.loads((tmp_path / "test_replay_partial.json").read_text())
+    # the first gameweek builds a squad and needs no search
+    assert [gameweek["gameweek"] for gameweek in written["gameweeks"]] == [
+        FIRST_GAMEWEEK
+    ]

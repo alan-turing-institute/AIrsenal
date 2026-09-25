@@ -107,7 +107,20 @@ def test_empty_squad(fill_players):
     t = Squad()
     with pytest.raises(RuntimeError) as errmsg:
         t.get_expected_points("dummy", 1)
-    assert str(errmsg.value) == "Squad is incomplete"
+    assert str(errmsg.value) == (
+        "Squad is incomplete: 0 of 15 players (), with 1000 in the bank"
+    )
+
+
+def test_an_incomplete_squad_says_who_is_in_it_and_what_is_left(fill_players):
+    """So a squad that ran out of money partway through a rebuild can be traced."""
+    with session_scope() as ts:
+        t = Squad(season=TEST_SEASON)
+        t.add_player("Alice", dbsession=ts)
+        with pytest.raises(RuntimeError, match="1 of 15 players") as errmsg:
+            t.get_expected_points("dummy", 1)
+    assert "Alice" in str(errmsg.value)
+    assert f"with {t.budget} in the bank" in str(errmsg.value)
 
 
 def test_order_substitutes():

@@ -273,6 +273,17 @@ def replay_season(pipeline: AIrsenalPipeline, replay: ReplaySettings) -> ReplayR
     )
 
     outcomes: list[ReplayGameweek] = []
+
+    def result_so_far() -> ReplayResult:
+        return ReplayResult(
+            tag=tag_prefix,
+            season=season,
+            n_gameweeks=pipeline.settings.n_gameweeks,
+            config=describe_pipeline(pipeline),
+            gameweeks=list(outcomes),
+            elapsed=(datetime.now() - start).total_seconds(),
+        )
+
     replay_range = range(replay.gameweek_start, gameweek_end + 1)
     for idx, gameweek in enumerate(track(replay_range, description="REPLAY PROGRESS")):
         logger.info("GW%s (%s out of %s)...", gameweek, idx + 1, len(replay_range))
@@ -296,16 +307,11 @@ def replay_season(pipeline: AIrsenalPipeline, replay: ReplaySettings) -> ReplayR
             pipeline = pipeline.with_settings(
                 chips=pipeline.settings.chips.after_playing(chip, gameweek)
             )
+        # rewritten every gameweek, so a replay that fails partway keeps the rest
+        result_so_far().write(replay.output_dir)
         logger.info("-" * 30)
 
-    result = ReplayResult(
-        tag=tag_prefix,
-        season=season,
-        n_gameweeks=pipeline.settings.n_gameweeks,
-        config=describe_pipeline(pipeline),
-        gameweeks=outcomes,
-        elapsed=(datetime.now() - start).total_seconds(),
-    )
+    result = result_so_far()
     path = result.write(replay.output_dir)
     print_replay_params(
         season, replay.gameweek_start, gameweek_end, tag_prefix, fpl_team_id
