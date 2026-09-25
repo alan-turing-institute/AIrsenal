@@ -10,7 +10,10 @@ from unittest import mock
 
 from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.protocols import TransferRequest
-from airsenal.optimization.strategies import DEFAULT_STRATEGIES
+from airsenal.optimization.strategies import (
+    TRANSFER_STRATEGIES,
+    StrategySet,
+)
 from airsenal.optimization.strategies.double import make_optimum_double_transfer
 from airsenal.optimization.strategies.single import make_optimum_single_transfer
 from airsenal.squad.squad import Squad, SubWeights
@@ -262,10 +265,11 @@ def test_the_progress_steps_counted_match_the_number_promised():
         }.items()
     }
 
-    # every strategy that reports progress at all: the whole-squad rebuild a
-    # wildcard does is the genetic algorithm, which reports nothing back.
+    # the strategies that search mocked predictions; the genetic ones read the
+    # database, and are counted in tests/optimization/test_genetic_transfers.py
+    strategies = StrategySet(many_transfers="random")
     for move in (GameweekMove(1), GameweekMove(2), GameweekMove(3)):
-        strategy = DEFAULT_STRATEGIES.create(move)
+        strategy = strategies.create(move)
         steps = 0
 
         def count_step() -> None:
@@ -371,7 +375,7 @@ def test_a_random_search_that_cannot_complete_a_squad_reports_no_transfers():
         "airsenal.optimization.strategies.random_search.get_predicted_points",
         side_effect=predicted_point_mock_generator(points),
     ):
-        proposal = DEFAULT_STRATEGIES.create(GameweekMove(3)).propose(request)
+        proposal = TRANSFER_STRATEGIES["random"]().propose(request)
 
     assert proposal.players_in == []
     assert proposal.players_out == []

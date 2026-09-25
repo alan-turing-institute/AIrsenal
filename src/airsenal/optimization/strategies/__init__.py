@@ -13,6 +13,7 @@ from airsenal.optimization.moves import GameweekMove
 from airsenal.optimization.protocols import TransferStrategy
 from airsenal.optimization.strategies.double import DoubleTransferStrategy
 from airsenal.optimization.strategies.full_squad import FullSquadStrategy
+from airsenal.optimization.strategies.genetic import GeneticTransferStrategy
 from airsenal.optimization.strategies.none import NoTransfersStrategy
 from airsenal.optimization.strategies.random_search import RandomTransferStrategy
 from airsenal.optimization.strategies.single import SingleTransferStrategy
@@ -20,16 +21,17 @@ from airsenal.optimization.strategies.single import SingleTransferStrategy
 TRANSFER_STRATEGIES: dict[str, Callable[[], TransferStrategy]] = {
     "double": DoubleTransferStrategy,
     "full_squad": FullSquadStrategy,
+    "genetic": GeneticTransferStrategy,
     "none": NoTransfersStrategy,
     "random": RandomTransferStrategy,
     "single": SingleTransferStrategy,
 }
 
 # How many players change decides how the search is done: one or two can be
-# enumerated exhaustively, more has to be sampled, and a chip that rebuilds the
-# squad goes to a whole-squad optimizer.
+# enumerated exhaustively, more are searched by a genetic algorithm, and a chip
+# that rebuilds the squad goes to a whole-squad optimizer.
 _BY_TRANSFER_COUNT = {0: "none", 1: "single", 2: "double"}
-_MANY_TRANSFERS = "random"
+_MANY_TRANSFERS = "genetic"
 _REBUILD = "full_squad"
 
 
