@@ -10,6 +10,7 @@ from dataclasses import replace
 
 from airsenal.core.lookup import lookup
 from airsenal.optimization.protocols import TransferOptimizer
+from airsenal.optimization.transfer_optimizers.mcts import MCTSConfig, MCTSOptimizer
 from airsenal.optimization.transfer_optimizers.tree_search import (
     TreeSearchConfig,
     TreeSearchOptimizer,
@@ -18,6 +19,7 @@ from airsenal.optimization.transfer_optimizers.tree_search import (
 DEFAULT_TRANSFER_OPTIMIZER = "tree_search"
 
 TRANSFER_OPTIMIZERS: dict[str, Callable[[], TransferOptimizer]] = {
+    "mcts": MCTSOptimizer,
     "tree_search": TreeSearchOptimizer,
 }
 
@@ -49,6 +51,8 @@ def build_transfer_optimizer(
 __all__ = [
     "DEFAULT_TRANSFER_OPTIMIZER",
     "TRANSFER_OPTIMIZERS",
+    "MCTSConfig",
+    "MCTSOptimizer",
     "TreeSearchConfig",
     "TreeSearchOptimizer",
     "build_transfer_optimizer",
