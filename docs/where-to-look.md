@@ -52,7 +52,7 @@ module and line that wrote it, e.g. `airsenal.prediction.run:112`.
 | change what a goal, assist, clean sheet or save is worth | `game/scoring.py` |
 | change how free transfers accrue, or what a hit costs | `free_transfers_after` and `POINTS_HIT_COST` in `game/scoring.py`. The search applies them in `calc_free_transfers` in `optimization/moves.py`; `get_free_transfers` in `squad/state.py` works out how many the user has now |
 | change squad rules: budget, players per club, players per position | the `check_*` methods of `Squad`, and `TOTAL_PER_POSITION`, in `squad/squad.py`; the budget is in `SquadScoringConfig` in `optimization/squad_score.py` |
-| change how chips work | `Chip` in `game/enums.py`, `optimization/moves.py` for when they can be played, and `chip_gameweeks` in `cli/_components.py` for the flags |
+| change how chips work | `Chip` in `game/enums.py`, `game/chips.py` for how many a season gives and when they expire, `optimization/moves.py` for when they can be played, `optimization/chip_timing.py` for the rules behind `--chip-heuristic`, and `chip_gameweeks` in `cli/_components.py` for the flags |
 | change how the current season is decided | `get_current_season` in `game/season.py` |
 | match a club or position name from another data source | `game/mappings.py` |
 

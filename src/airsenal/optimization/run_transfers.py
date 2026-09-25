@@ -5,6 +5,7 @@ Fetching the starting squad, persisting the suggestions and reporting the result
 """
 
 import json
+from dataclasses import replace
 from pathlib import Path
 
 from sqlalchemy.orm import Session
@@ -14,8 +15,11 @@ from airsenal.core.copy import fastcopy
 from airsenal.core.logging import get_logger
 from airsenal.db.queries.players import get_player, get_player_name
 from airsenal.db.session import get_session
+from airsenal.game.chips import chips_used_up
 from airsenal.game.enums import Chip
+from airsenal.game.mappings import chips_by_api_name
 from airsenal.game.season import CURRENT_SEASON
+from airsenal.optimization.chip_timing import chip_gameweeks, decide_chips
 from airsenal.optimization.moves import ChipGameweeks, ChipSchedule
 from airsenal.optimization.persist import fill_suggestion_table, fill_transaction_table
 from airsenal.optimization.plan import Plan
@@ -176,6 +180,49 @@ def squad_for_next_gameweek(
     return squad
 
 
+def available_chips(
+    chips: ChipGameweeks,
+    gameweek: int,
+    season: str = CURRENT_SEASON,
+    fpl_team_id: int | None = None,
+    fetcher: FPLDataFetcher | None = None,
+) -> frozenset[Chip]:
+    """
+    The chips the entry has left to play in `gameweek`.
+
+    From the API when given a fetcher, which needs a login; otherwise every chip
+    `chips.played` has not used up, which is what a replay knows.
+    """
+    if fetcher is None:
+        return frozenset(Chip) - set(chips_used_up(chips.played, gameweek, season))
+    names = fetcher.get_available_chips(fpl_team_id)
+    unknown = sorted(set(names) - set(chips_by_api_name))
+    if unknown:
+        msg = f"The FPL API reported chips AIrsenal does not know: {unknown}"
+        raise ValueError(msg)
+    return frozenset(chips_by_api_name[name] for name in names)
+
+
+def _chips_by_heuristic(
+    chips: ChipGameweeks,
+    squad: Squad,
+    gameweeks: list[int],
+    tag: str,
+    season: str = CURRENT_SEASON,
+    fpl_team_id: int | None = None,
+    fetcher: FPLDataFetcher | None = None,
+) -> ChipGameweeks:
+    """The chip gameweeks `chip_timing` decides, keeping what was played before."""
+    available = available_chips(
+        chips, gameweeks[0], season=season, fpl_team_id=fpl_team_id, fetcher=fetcher
+    )
+    decisions = decide_chips(squad, available, gameweeks, tag, season=season)
+    for gameweek, chip, why in decisions:
+        if chip is not None:
+            logger.info("Chip heuristic: %s in gameweek %s - %s", chip, gameweek, why)
+    return replace(chip_gameweeks(decisions), played=chips.played, heuristic=True)
+
+
 def run_optimization(
     gameweeks: list[int],
     tag: str,
@@ -246,6 +293,16 @@ def run_optimization(
             )
         logger.info("Starting with %s free transfers", num_free_transfers)
 
+        if chips.heuristic:
+            chips = _chips_by_heuristic(
+                chips,
+                starting_squad,
+                gameweeks,
+                tag,
+                season=season,
+                fpl_team_id=fpl_team_id,
+                fetcher=fetcher if use_api else None,
+            )
         chip_schedule = ChipSchedule.from_gameweeks(gameweeks, chips)
 
         result = optimizer.search(

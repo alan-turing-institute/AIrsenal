@@ -95,6 +95,7 @@ def run(
     free_hit_gameweek: options.FreeHitGameweek = -1,
     triple_captain_gameweek: options.TripleCaptainGameweek = -1,
     bench_boost_gameweek: options.BenchBoostGameweek = -1,
+    chip_heuristic: options.ChipHeuristic = False,
     # --- output ---
     apply_transfers: ApplyTransfers = False,
     yes: options.Yes = False,
@@ -123,6 +124,7 @@ def run(
                 free_hit_gameweek,
                 triple_captain_gameweek,
                 bench_boost_gameweek,
+                heuristic=chip_heuristic,
             ),
             database=DatabaseSettings(
                 clean=clean,

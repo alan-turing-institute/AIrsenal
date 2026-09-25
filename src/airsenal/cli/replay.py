@@ -90,6 +90,7 @@ def replay(
     free_hit_gameweek: options.FreeHitGameweek = -1,
     triple_captain_gameweek: options.TripleCaptainGameweek = -1,
     bench_boost_gameweek: options.BenchBoostGameweek = -1,
+    chip_heuristic: options.ChipHeuristic = False,
     subs: options.Subs = True,
     output_dir: OutputDir = None,
     tag_prefix: TagPrefix = "",
@@ -126,6 +127,7 @@ def replay(
                     free_hit_gameweek,
                     triple_captain_gameweek,
                     bench_boost_gameweek,
+                    heuristic=chip_heuristic,
                 ),
                 # replay never touches the real entry or the live API
                 refresh_database=False,

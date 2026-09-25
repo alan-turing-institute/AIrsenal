@@ -284,6 +284,15 @@ WildcardGameweek = Annotated[int, _chip_option("Wildcard")]
 FreeHitGameweek = Annotated[int, _chip_option("Free hit")]
 TripleCaptainGameweek = Annotated[int, _chip_option("Triple captain")]
 BenchBoostGameweek = Annotated[int, _chip_option("Bench boost")]
+ChipHeuristic = Annotated[
+    bool,
+    typer.Option(
+        help=(
+            "Choose each chip's gameweek by rules about the fixtures, in place of "
+            "the four chip gameweek options."
+        )
+    ),
+]
 
 # ----------------------------------------------------------------- output ----
 

@@ -183,6 +183,9 @@ class ChipGameweeks:
     -1 never, 0 any gameweek the search likes, n that gameweek. `played` is
     (gameweek, chip) for each chip already spent, which a replay accumulates as
     it goes; a live run leaves it empty and says -1 for a spent chip instead.
+
+    With `heuristic`, the four gameweeks are not used: once the squad is known,
+    `optimization.chip_timing` decides them from the fixtures.
     """
 
     wildcard: int = -1
@@ -190,6 +193,7 @@ class ChipGameweeks:
     triple_captain: int = -1
     bench_boost: int = -1
     played: tuple[tuple[int, Chip], ...] = ()
+    heuristic: bool = False
 
     def after_playing(self, chip: Chip, gameweek: int) -> "ChipGameweeks":
         """The same chip gameweeks, with `chip` spent in `gameweek`."""

@@ -147,6 +147,7 @@ or a row names one that does not exist.
 | `optimization/moves.py` | what can be done in one gameweek: transfers, chips, hits and free transfers |
 | `optimization/plan.py` | `Plan` and `TransferSearchResult`: what a search produces |
 | `optimization/squad_score.py` | what a squad is worth over a window, and `SquadScoringConfig` |
+| `optimization/chip_timing.py` | the rules that decide chip gameweeks for `--chip-heuristic` |
 | `optimization/run_transfers.py` | running a transfer search: everything around the algorithm |
 | `optimization/run_squad.py` | running a from-scratch squad build |
 | `optimization/persist.py` | writing a plan to the `transfer_suggestion` and `transaction` tables |
