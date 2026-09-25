@@ -204,7 +204,6 @@ module = [
     "numpyro.*",
     "jax.*",
     "curl_cffi.*",
-    "html5lib.*",
     "dateparser.*",
     "scipy.*",
     # only installed with the "plot" extra
