@@ -2,6 +2,7 @@
 
 from collections.abc import Iterable, Sequence
 from datetime import date, datetime
+from typing import Any
 
 from sqlalchemy import Select, or_, select
 from sqlalchemy.orm import Session
@@ -115,12 +116,12 @@ def get_fixture_teams(fixtures: Iterable[Fixture]) -> list[tuple[str, str]]:
     return [(fixture.home_team, fixture.away_team) for fixture in fixtures]
 
 
-def _filter_teams(
-    query: Select[tuple[Fixture]],
+def _filter_teams[SelectT: Select[Any]](
+    query: SelectT,
     team_name: str,
     was_home: bool | None,
     other_team_name: str | None,
-) -> Select[tuple[Fixture]]:
+) -> SelectT:
     """Narrow `query` to fixtures with these teams, on either side unless `was_home`."""
     if was_home is True:
         query = query.where(Fixture.home_team == team_name)
