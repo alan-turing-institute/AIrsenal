@@ -70,7 +70,7 @@ jobs:
         run: uv run pytest -ra -m slow --durations=20
 
       - name: Upload coverage report
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage.xml
