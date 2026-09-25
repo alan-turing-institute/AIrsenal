@@ -45,9 +45,10 @@ ATTRIBUTES_HISTORY_COLUMNS = (
     "return_gameweek",
 )
 
-# `main` has the packaged data at `airsenal/data` until the src layout is merged
-# there, and at `src/airsenal/data` after, so try both.
-_ATTRIBUTES_HISTORY_PATHS = ("src/airsenal/data", "airsenal/data")
+_ATTRIBUTES_HISTORY_URL = (
+    "https://raw.githubusercontent.com/alan-turing-institute/AIrsenal/refs/"
+    "heads/main/src/airsenal/data/player_attributes_history_{season}.csv"
+)
 
 
 @dataclass(frozen=True)
@@ -66,15 +67,6 @@ def has_attributes_history(season: str) -> bool:
     )
 
 
-def _attributes_history_urls(season: str) -> list[str]:
-    """Where the attributes history for a season might be, best guess first."""
-    return [
-        "https://raw.githubusercontent.com/alan-turing-institute/AIrsenal/refs/"
-        f"heads/main/{path}/player_attributes_history_{season}.csv"
-        for path in _ATTRIBUTES_HISTORY_PATHS
-    ]
-
-
 def _read_history_csv(path: Path | str) -> pd.DataFrame:
     df_attributes = pd.read_csv(path, usecols=list(ATTRIBUTES_HISTORY_COLUMNS))
     df_attributes["day"] = pd.to_datetime(df_attributes["timestamp"]).dt.date
@@ -90,15 +82,15 @@ def _load_packaged(season: str) -> pd.DataFrame | None:
 
 
 def _load_downloaded(season: str) -> pd.DataFrame | None:
-    for url in _attributes_history_urls(season):
-        try:
-            with tempfile.TemporaryDirectory(prefix="airsenal_attrs_") as tmpdir:
-                tmp_csv = Path(tmpdir) / f"player_attributes_history_{season}.csv"
-                download_with_resume(url=url, dest=tmp_csv)
-                return _read_history_csv(tmp_csv)
-        except RemoteError:
-            logger.info("Not found at %s", url)
-    return None
+    url = _ATTRIBUTES_HISTORY_URL.format(season=season)
+    try:
+        with tempfile.TemporaryDirectory(prefix="airsenal_attrs_") as tmpdir:
+            tmp_csv = Path(tmpdir) / f"player_attributes_history_{season}.csv"
+            download_with_resume(url=url, dest=tmp_csv)
+            return _read_history_csv(tmp_csv)
+    except RemoteError:
+        logger.info("Not found at %s", url)
+        return None
 
 
 @lru_cache(maxsize=4)
