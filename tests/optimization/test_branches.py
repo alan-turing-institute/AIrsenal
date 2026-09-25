@@ -10,7 +10,7 @@ from airsenal.optimization.moves import (
     ChipSchedule,
     GameweekChips,
 )
-from airsenal.optimization.transfer_optimizers.tree_search import (
+from airsenal.optimization.transfer_optimizers.branches import (
     count_expected_outputs,
     next_gameweek_transfers,
 )

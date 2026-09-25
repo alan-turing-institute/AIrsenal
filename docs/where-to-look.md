@@ -87,7 +87,7 @@ module and line that wrote it, e.g. `airsenal.prediction.run:112`.
 | I want to… | start at |
 |---|---|
 | change how transfers are chosen in a gameweek | `optimization/strategies/`, one module per strategy |
-| change how the whole window is searched | `optimization/transfer_optimizers/tree_search.py` |
+| change how the whole window is searched | `optimization/transfer_optimizers/`, one module per search; the moves legal in each gameweek, and what taking one scores, are in `branches.py` |
 | change how a squad is valued over the window: substitute weights, discounting later gameweeks | `optimization/squad_score.py` |
 | change the limit on total hits, or other transfer constraints | `optimization/protocols.py`, and `transfer_constraints` in `cli/_components.py` |
 | change how a squad is built from scratch | `optimization/squad_optimizers/` |
