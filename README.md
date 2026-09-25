@@ -6,7 +6,9 @@
 
 ## Background and News
 
-For some background information and details see https://www.turing.ac.uk/research/research-programmes/research-engineering/programme-articles/airsenal.
+### 25th September 2026: AIrsenal v2 Released
+
+We have refactored AIrsenal, including the command-line interface. If you have a pre-existing AIrsenal v1 database you will need to re-create it using `uv run airsenal run --clean`. See below for the new commands, or the files in [docs/](docs/) for more details.
 
 ### AIrsenal Details for 2026/27 season
 
@@ -15,6 +17,10 @@ The code to join is: **bancts**.
 Hope to see your AI team there!! :)
 
 Our own AIrsenal team's ID for the 2026/27 season is **[1598585](https://fantasy.premierleague.com/entry/1598585/history)**.
+
+### Background
+
+For some background information and details see https://www.turing.ac.uk/research/research-programmes/research-engineering/programme-articles/airsenal.
 
 ## Installation
 
@@ -108,9 +114,11 @@ The PyPI release provides the same `airsenal` command described in [Getting Star
 
 <details>
 
-  AIrsenal has optional dependencies for plotting (`plot`), running notebooks (`notebook`), the dev toolchain (`dev`) and the one-off scripts in `tools/` (`tools`). To install them all:
+  AIrsenal has optional dependencies for plotting (`plot`) and running notebooks (`notebook`). To install them all:
   - With uv: `uv sync --all-extras`
-  - Without uv: `pip install ".[notebook,plot,dev,tools]"`
+  - Without uv: `pip install ".[notebook,plot]"`
+
+  The dev toolchain is in the `dev` dependency group, which `uv sync` installs by default.
 
 </details>
 
@@ -225,6 +233,10 @@ To apply the transfers recommended by AIrsenal to your team on the FPL website r
 
 You can also use `airsenal apply lineup` to set your starting lineup, captaincy choices, and substitute order to AIrsenal's recommendation (without making any transfers).
 
+### Command Migration
+
+The former `airsenal_*` executables have been replaced by subcommands of `airsenal`. See [docs/old-to-new.md](docs/old-to-new.md) for the replacement for each old command, and for where every old function and class now lives.
+
 ## Issues and New Features
 
 AIrsenal is regularly developed to fix bugs and add new features. If you have any problems during installation or usage please let us know by [creating an issue](https://github.com/alan-turing-institute/AIrsenal/issues/new) (or have a look through [existing issues](https://github.com/alan-turing-institute/AIrsenal/issues) to see if it's something we're already working on).
@@ -250,7 +262,7 @@ Install the dev toolchain and the pre-commit hooks, which run formatting, lintin
 checking and the package layering contracts on every commit:
 
 ```shell
-uv sync --extra dev
+uv sync
 pre-commit install --install-hooks
 ```
 

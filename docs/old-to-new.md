@@ -2,7 +2,7 @@
 
 Every public function, class and method on `main` (under `airsenal/framework/` and `airsenal/scripts/`), and where it lives now. New paths are relative to `src/airsenal/` unless they start with `tests/` or `tools/`.
 
-331 of 377 names moved or were renamed; 46 were removed. Names that kept their name were matched mechanically; the rest were traced through the commit history on this branch.
+331 of 377 names moved or were renamed, and 46 were removed. Names that didn't change were matched automatically; the rest were traced through the commit history on this branch.
 
 ## Commands
 
@@ -27,7 +27,7 @@ Every public function, class and method on `main` (under `airsenal/framework/` a
 
 ## Modules
 
-Where each old module's contents went, most first.
+Where each old module's contents went. The number in brackets is how many names went there, largest first.
 
 | old module | now in |
 |---|---|
@@ -129,7 +129,7 @@ Where each old module's contents went, most first.
 | `airsenal/framework/data_fetcher.py` | `FPLDataFetcher.get_event_data` | `remote/fpl_api.py::FPLDataFetcher.get_event_data` | same name |
 | `airsenal/framework/data_fetcher.py` | `FPLDataFetcher.get_player_summary_data` | `remote/fpl_api.py::FPLDataFetcher.get_player_summary_data` | same name |
 | `airsenal/framework/data_fetcher.py` | `FPLDataFetcher.get_current_team_data` | `remote/fpl_api.py::FPLDataFetcher.get_current_team_data` | same name |
-| `airsenal/framework/data_fetcher.py` | `FPLDataFetcher.get_gameweek_data_for_player` | `remote/fpl_api.py::FPLDataFetcher.get_gameweek_data_for_player`<br>`remote/fpl_api.py::FPLDataFetcher.get_gameweek_data_for_player`<br>`remote/fpl_api.py::FPLDataFetcher.get_gameweek_data_for_player` | same name, defined in several places |
+| `airsenal/framework/data_fetcher.py` | `FPLDataFetcher.get_gameweek_data_for_player` | `remote/fpl_api.py::FPLDataFetcher.get_gameweek_data_for_player` | same name |
 | `airsenal/framework/data_fetcher.py` | `FPLDataFetcher.get_fixture_data` | `remote/fpl_api.py::FPLDataFetcher.get_fixture_data` | same name |
 | `airsenal/framework/data_fetcher.py` | `FPLDataFetcher.get_transfer_deadlines` | removed | removed: dead, only caller was is_transfer_deadline_today |
 | `airsenal/framework/data_fetcher.py` | `FPLDataFetcher.get_lineup` | `remote/fpl_api.py::FPLDataFetcher.get_lineup` | same name |
@@ -212,7 +212,7 @@ Where each old module's contents went, most first.
 | `airsenal/framework/prediction_utils.py` | `process_player_data` | `prediction/features.py::process_player_data` | same name |
 | `airsenal/framework/prediction_utils.py` | `fit_player_data` | `prediction/player_models/fitting.py::fit_player_data` | same name |
 | `airsenal/framework/prediction_utils.py` | `get_all_fitted_player_data` | `prediction/player_models/fitting.py::get_all_fitted_player_data` | same name |
-| `airsenal/framework/prediction_utils.py` | `get_player_scores` | `db/queries/scores.py::get_player_scores`<br>`db/queries/scores.py::get_player_scores`<br>`db/queries/scores.py::get_player_scores`<br>`db/queries/scores.py::get_player_scores` | same name, defined in several places |
+| `airsenal/framework/prediction_utils.py` | `get_player_scores` | `db/queries/scores.py::get_player_scores` | same name |
 | `airsenal/framework/prediction_utils.py` | `mean_group_prior` | `prediction/point_components/empirical_bayes.py::mean_group_prior` | same name |
 | `airsenal/framework/prediction_utils.py` | `fit_bonus_points` | `prediction/point_components/bonus.py::fit_bonus_points` | same name |
 | `airsenal/framework/prediction_utils.py` | `fit_save_points` | `prediction/point_components/saves.py::fit_save_points` | same name |
@@ -239,7 +239,7 @@ Where each old module's contents went, most first.
 | `airsenal/framework/schema.py` | `Transaction` | `db/models.py::Transaction` | same name |
 | `airsenal/framework/schema.py` | `TransferSuggestion` | `db/models.py::TransferSuggestion` | same name |
 | `airsenal/framework/schema.py` | `FifaTeamRating` | `db/models.py::FifaTeamRating` | same name |
-| `airsenal/framework/schema.py` | `Team` | `db/models.py::Team`<br>`remote/transfermarkt.py::Team` | same name, defined in several places |
+| `airsenal/framework/schema.py` | `Team` | `db/models.py::Team`<br>`remote/transfermarkt.py::Team` | same name, now in more than one module |
 | `airsenal/framework/schema.py` | `SessionSquad` | removed | removed: Flask API remnant, table unused |
 | `airsenal/framework/schema.py` | `SessionBudget` | removed | removed: Flask API remnant, table unused |
 | `airsenal/framework/schema.py` | `get_connection_string` | `db/engine.py::get_connection_string` | same name |
@@ -248,7 +248,7 @@ Where each old module's contents went, most first.
 | `airsenal/framework/schema.py` | `clean_database` | `db/session.py::clean_database` | same name |
 | `airsenal/framework/schema.py` | `database_is_empty` | `db/queries/teams.py::database_is_empty` | same name |
 | `airsenal/framework/season.py` | `get_current_season` | `game/season.py::get_current_season` | same name |
-| `airsenal/framework/season.py` | `get_teams_for_season` | `db/queries/teams.py::get_teams_for_season`<br>`remote/transfermarkt.py::get_teams_for_season` | same name, defined in several places |
+| `airsenal/framework/season.py` | `get_teams_for_season` | `db/queries/teams.py::get_teams_for_season`<br>`remote/transfermarkt.py::get_teams_for_season` | same name, now in more than one module |
 | `airsenal/framework/season.py` | `season_str_to_year` | `game/season.py::season_str_to_year` | same name |
 | `airsenal/framework/season.py` | `sort_seasons` | `game/season.py::sort_seasons` | same name |
 | `airsenal/framework/squad.py` | `Squad` | `squad/squad.py::Squad` | same name |
@@ -309,8 +309,8 @@ Where each old module's contents went, most first.
 | `airsenal/framework/utils.py` | `get_next_fixture_for_player` | removed | removed: Flask API remnant |
 | `airsenal/framework/utils.py` | `get_fixtures_for_season` | `db/queries/fixtures.py::get_fixtures_for_season` | same name |
 | `airsenal/framework/utils.py` | `get_fixtures_for_gameweek` | `db/queries/fixtures.py::get_fixtures_for_gameweeks` | renamed (plural), takes list of gameweeks |
-| `airsenal/framework/utils.py` | `get_fixture_teams` | `db/queries/fixtures.py::get_fixture_teams`<br>`export/player_details.py::get_fixture_teams` | same name, defined in several places |
-| `airsenal/framework/utils.py` | `get_player_scores` | `db/queries/scores.py::get_player_scores`<br>`db/queries/scores.py::get_player_scores`<br>`db/queries/scores.py::get_player_scores`<br>`db/queries/scores.py::get_player_scores` | same name, defined in several places |
+| `airsenal/framework/utils.py` | `get_fixture_teams` | `db/queries/fixtures.py::get_fixture_teams`<br>`export/player_details.py::get_fixture_teams` | same name, now in more than one module |
+| `airsenal/framework/utils.py` | `get_player_scores` | `db/queries/scores.py::get_player_scores` | same name |
 | `airsenal/framework/utils.py` | `get_players_for_gameweek` | `squad/state.py::get_players_for_gameweek` | same name |
 | `airsenal/framework/utils.py` | `get_previous_points_for_same_fixture` | removed | removed: never called |
 | `airsenal/framework/utils.py` | `get_predicted_points_for_player` | `db/queries/predictions.py::get_predicted_points_for_player` | same name |
@@ -403,12 +403,12 @@ Where each old module's contents went, most first.
 | `airsenal/scripts/get_transfer_suggestions.py` | `build_strategy_string` | removed | removed: only reachable from module's __main__ |
 | `airsenal/scripts/make_player_details.py` | `make_player_details` | `export/player_details.py::make_player_details` | same name |
 | `airsenal/scripts/make_player_details.py` | `get_team_mapping` | `export/player_details.py::get_team_mapping` | same name |
-| `airsenal/scripts/make_player_details.py` | `get_fixture_teams` | `db/queries/fixtures.py::get_fixture_teams`<br>`export/player_details.py::get_fixture_teams` | same name, defined in several places |
+| `airsenal/scripts/make_player_details.py` | `get_fixture_teams` | `db/queries/fixtures.py::get_fixture_teams`<br>`export/player_details.py::get_fixture_teams` | same name, now in more than one module |
 | `airsenal/scripts/make_player_details.py` | `get_played_for` | `export/player_details.py::get_played_for` | same name |
 | `airsenal/scripts/make_player_history_table.py` | `get_player_history_table` | removed | removed: superseded by prediction/features.py::get_player_history_df |
 | `airsenal/scripts/make_player_summary.py` | `make_player_summary` | `export/player_summary.py::make_player_summary` | same name |
 | `airsenal/scripts/make_results.py` | `make_results` | `export/results.py::make_results` | same name |
-| `airsenal/scripts/make_transfers.py` | `check_proceed` | `apply/lineup.py::check_proceed`<br>`apply/transfers.py::check_proceed` | same name, defined in several places |
+| `airsenal/scripts/make_transfers.py` | `check_proceed` | `apply/lineup.py::check_proceed`<br>`apply/transfers.py::check_proceed` | same name, now in more than one module |
 | `airsenal/scripts/make_transfers.py` | `deduct_transfer_price` | `apply/transfers.py::bank_after_transfers` | renamed |
 | `airsenal/scripts/make_transfers.py` | `print_output` | `apply/transfers.py::print_output` | same name |
 | `airsenal/scripts/make_transfers.py` | `get_sell_price` | `apply/transfers.py::get_sell_price` | same name |
@@ -433,7 +433,7 @@ Where each old module's contents went, most first.
 | `airsenal/scripts/save_attributes.py` | `save_attributes_from_api` | `export/attributes.py::save_attributes_from_api` | same name |
 | `airsenal/scripts/save_expected_absences.py` | `save_absences` | removed | removed: absences exporter retired with Absence table |
 | `airsenal/scripts/save_expected_absences.py` | `player_attribute_to_absence` | removed | removed: absences exporter retired with Absence table |
-| `airsenal/scripts/scrape_transfermarkt.py` | `get_teams_for_season` | `db/queries/teams.py::get_teams_for_season`<br>`remote/transfermarkt.py::get_teams_for_season` | same name, defined in several places |
+| `airsenal/scripts/scrape_transfermarkt.py` | `get_teams_for_season` | `db/queries/teams.py::get_teams_for_season`<br>`remote/transfermarkt.py::get_teams_for_season` | same name, now in more than one module |
 | `airsenal/scripts/scrape_transfermarkt.py` | `get_team_players` | `remote/transfermarkt.py::get_team_players` | same name |
 | `airsenal/scripts/scrape_transfermarkt.py` | `tidy_df` | `remote/transfermarkt.py::tidy_df` | same name |
 | `airsenal/scripts/scrape_transfermarkt.py` | `filter_season` | `remote/transfermarkt.py::filter_season` | same name |
@@ -452,7 +452,7 @@ Where each old module's contents went, most first.
 | `airsenal/scripts/scrape_understat.py` | `get_season_info` | removed | removed: understat scraper had no importers |
 | `airsenal/scripts/set_env.py` | `redact_db_password` | `cli/env.py::redact_db_password` | same name |
 | `airsenal/scripts/set_env.py` | `print_env` | `cli/env.py::print_env` | same name |
-| `airsenal/scripts/set_lineup.py` | `check_proceed` | `apply/lineup.py::check_proceed`<br>`apply/transfers.py::check_proceed` | same name, defined in several places |
+| `airsenal/scripts/set_lineup.py` | `check_proceed` | `apply/lineup.py::check_proceed`<br>`apply/transfers.py::check_proceed` | same name, now in more than one module |
 | `airsenal/scripts/set_lineup.py` | `build_lineup_payload` | `apply/lineup.py::build_lineup_payload` | same name |
 | `airsenal/scripts/set_lineup.py` | `get_lineup_from_payload` | `apply/lineup.py::get_lineup_from_payload` | same name |
 | `airsenal/scripts/set_lineup.py` | `make_squad_transfers` | removed | removed: dead since 2021 and broken |

@@ -16,10 +16,10 @@ corresponding issue.
 
 ## Developer dependencies
 
-Everything needed to develop but not to run AIrsenal is in the `dev` optional dependency
-group:
+Everything needed to develop but not to run AIrsenal is in the `dev` dependency group,
+which `uv sync` installs by default:
 ```
-uv sync --extra dev
+uv sync
 ```
 
 ## Code style, formatting, code quality

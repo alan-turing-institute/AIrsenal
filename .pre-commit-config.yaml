@@ -16,64 +16,33 @@ repos:
       - id: mixed-line-ending
       - id: name-tests-test
         args: ["--pytest-test-first"]
-        # The hook checks every tests/**/*.py and exempts only __init__.py and
-        # conftest.py, so a module holding fixture data rather than tests has to
-        # be listed here - the alternative is calling it test_something.py and
-        # having it collected as a test file that contains no tests.
+        # exclude test data from test naming conventions
         exclude: ^tests/dummy_data\.py$
       - id: trailing-whitespace
 
-  # Keep this in step with the `ruff` floor in pyproject.toml's dev extra. If the
-  # hook is older than the ruff `uv run ruff` picks up, the two can format the
-  # same file differently and the documented command produces a diff CI never
-  # asked for.
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.16.5"
+    rev: "v0.16.8"
     hooks:
-      # Run the linter.
       - id: ruff-check
         types_or: [ python, pyi, jupyter, pyproject ]
         args: [ "--fix", "--show-fixes" ]
       # Run the formatter. `markdown` is here because ruff formats fenced Python
-      # in Markdown, so the code samples in docs/ are held to the same style as
-      # the package - `ruff check` does not read Markdown, so it is not listed
-      # above.
+      # in Markdown
       - id: ruff-format
         types_or: [ python, pyi, jupyter, markdown ]
 
-  # additional_dependencies is the environment mypy gets, and it only needs the
-  # libraries it has to *resolve*: the untyped ones named in
-  # [[tool.mypy.overrides]] already have ignore_missing_imports, so they can stay
-  # absent. That is why this is six entries and not the whole dependency table.
-  #
-  # Leaving one out is a loud wrong answer rather than a quiet loss of coverage -
-  # without sqlalchemy every query returns Any, without typer every CLI command is
-  # an untyped-decorator error. If this hook and `uv run mypy` ever disagree,
-  # something is missing here.
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: "v2.3.1"
+  - repo: local
     hooks:
       - id: mypy
+        name: mypy
+        entry: uv run mypy
+        language: system
+        types_or: [ python, pyi ]
         files: ^(src/airsenal|tools)/
-        additional_dependencies:
-          - types-dateparser
-          - types-python-dateutil
-          - types-requests
-          - sqlalchemy
-          - typer
-          - pandas-stubs
+        pass_filenames: false
 
-  # Checks the layering contracts in pyproject.toml. Upstream is `language: system`,
-  # so `entry` is overridden to go through uv: a bare `lint-imports` is only on
-  # PATH inside the project venv, and committing from a shell without it activated
-  # would fail with "Executable `lint-imports` not found". additional_dependencies
-  # would not help - system hooks ignore it.
-  #
-  # It takes no filenames (pass_filenames is false upstream). A layering violation
-  # is an edge between two modules, so it needs the whole import graph and there is
-  # nothing to narrow to from the files being committed.
   - repo: https://github.com/seddonym/import-linter
-    rev: v2.14
+    rev: v2.15
     hooks:
       - id: import-linter
-        entry: uv run --extra dev lint-imports
+        entry: uv run lint-imports

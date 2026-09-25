@@ -1,15 +1,15 @@
 # Where to look
 
 Where to start when you want to change, add or debug something. The file map in
-[architecture.md](architecture.md) goes the other way: from a file to what is in
-it. Paths below are relative to `src/airsenal/`.
+[architecture.md](architecture.md) works the other way round, from a file to
+what's in it. Paths below are relative to `src/airsenal/`.
 
 ## From a command
 
-Every command, the function it hands off to, and where to go from there.
-`tests/test_navigation_docs.py` fails when a command is missing from this table.
+Every command, where it is defined, and the function that does the work.
+`tests/test_navigation_docs.py` fails if a command is missing from this table.
 
-| command | defined in | hands off to |
+| command | defined in | calls |
 |---|---|---|
 | `airsenal run` | `cli/run.py` | `AIrsenalPipeline.run` in `pipeline/run.py`, which refreshes the database, then calls the `predict` and `optimize` stages below, then optionally `apply` |
 | `airsenal db create` | `cli/db.py` | `create_database` in `ingest/init_db.py`, which calls each `ingest/<table>.py` in turn |
@@ -35,13 +35,13 @@ Options shared by several commands are defined once in `cli/options.py`. The
 flags that build transfer constraints, chip gameweeks and squad scoring are
 turned into settings in `cli/_components.py`.
 
-Never run `airsenal apply` while testing: it writes to the real FPL entry. Pass
-`--dry-run`, or assert on what `build_transfer_payload` returns.
+Never run `airsenal apply` while testing: it makes real changes to the FPL
+team. Pass `--dry-run`, or test what `build_transfer_payload` returns.
 
 ## From a log line
 
-Run any command with `airsenal -v ...` and every log line is prefixed with the
-module and line that wrote it, e.g. `airsenal.prediction.run:112`.
+Run a command with `airsenal -v ...` and every log line is prefixed with the
+module and line number that wrote it, e.g. `airsenal.prediction.run:112`.
 
 ## From a task
 
@@ -50,7 +50,7 @@ module and line that wrote it, e.g. `airsenal.prediction.run:112`.
 | I want to… | start at |
 |---|---|
 | change what a goal, assist, clean sheet or save is worth | `game/scoring.py` |
-| change how free transfers accrue, or what a hit costs | `free_transfers_after` and `POINTS_HIT_COST` in `game/scoring.py`. The search applies them in `calc_free_transfers` in `optimization/moves.py`; `get_free_transfers` in `squad/state.py` works out how many the user has now |
+| change how free transfers accrue, or what a hit costs | `free_transfers_after` and `POINTS_HIT_COST` in `game/scoring.py`. The search applies them in `calc_free_transfers` in `optimization/moves.py`; `get_free_transfers` in `squad/state.py` works out how many the user currently has |
 | change squad rules: budget, players per club, players per position | the `check_*` methods of `Squad`, and `TOTAL_PER_POSITION`, in `squad/squad.py`; the budget is in `SquadScoringConfig` in `optimization/squad_score.py` |
 | change how chips work | `Chip` in `game/enums.py`, `game/chips.py` for how many a season gives and when they expire, `optimization/moves.py` for when they can be played, `optimization/chip_timing.py` for the rules behind `--chip-heuristic`, and `chip_gameweeks` in `cli/_components.py` for the flags |
 | change how the current season is decided | `get_current_season` in `game/season.py` |
@@ -66,7 +66,7 @@ module and line that wrote it, e.g. `airsenal.prediction.run:112`.
 | use a new field from the FPL API | a method on `FPLDataFetcher` in `remote/fpl_api.py`, then the `ingest/` module that stores it |
 | debug `db update` failing or missing data | `update_database` in `ingest/update.py`; `airsenal db check` runs the consistency checks in `ingest/checks.py` |
 | fix a player whose name is not matched | `get_player` and `get_player_by_similar_name` in `db/queries/players.py`. Genuine spelling variants go in `data/alternative_player_names.csv`, read by `ingest/player_mappings.py` |
-| fix one person split into two player rows | `fill_player_table_from_file` in `ingest/players.py` joins a past season's player to an existing row by opta code (`find_player_in_table`), and records that season's name as an alternative. Seasons before 24/25 get their opta code from `opta_code` in `export/player_summary.py` |
+| fix one person split into two player rows | `fill_player_table_from_file` in `ingest/players.py` joins a past season's player to an existing row by opta code (`find_player_in_table`), and records that season's name as an alternative. Seasons before 2425 get their opta code from `opta_code` in `export/player_summary.py` |
 | change how injuries and suspensions are read | `is_injured_or_suspended` on `Player` in `db/models.py`, filled by `fill_availability_for_season` in `ingest/player_attributes.py` |
 | add a new season's packaged data | `src/airsenal/data/`, one file per kind per season (`teams_2627.csv`); `core/data_files.py` finds them, `export/` writes most of them |
 | point AIrsenal at a different database | `db/engine.py`, configured through `core/env.py` |
@@ -75,9 +75,9 @@ module and line that wrote it, e.g. `airsenal.prediction.run:112`.
 
 | I want to… | start at |
 |---|---|
-| add a model or a point component | [adding-a-model.md](adding-a-model.md). It is one class and one table line |
-| change the xG team or player model | [xg-models.md](xg-models.md) first: most obvious improvements have been measured and rejected |
-| work out why one player's prediction looks wrong | `score_prediction_breakdown` in `prediction/evaluation.py` splits a prediction into its components, which are in `prediction/point_components/`. Then `get_player_history_df` in `prediction/features.py` for the data the models were fitted to |
+| add a model or a point component | [adding-a-model.md](adding-a-model.md). It needs one class and one line in a table |
+| change the xG team or player model | [xg-models.md](xg-models.md) first: most of the obvious improvements have already been tried and rejected |
+| work out why one player's prediction looks wrong | `score_prediction_breakdown` in `prediction/evaluation.py` splits a prediction into its components (defined in `prediction/point_components/`). `get_player_history_df` in `prediction/features.py` returns the data the models were fitted to |
 | change how minutes are predicted | `prediction/minutes_models/`, and the helpers in `prediction/minutes.py` |
 | find out whether a change made predictions better | the `score_*` and `backtest_*` functions in `prediction/evaluation.py`, or `airsenal replay` for a whole season |
 | change what is written to the prediction table, or how runs are tagged | `prediction/run.py`, and `db/queries/tags.py` |
@@ -87,14 +87,14 @@ module and line that wrote it, e.g. `airsenal.prediction.run:112`.
 | I want to… | start at |
 |---|---|
 | change how transfers are chosen in a gameweek | `optimization/strategies/`, one module per strategy |
-| change how the whole window is searched | `optimization/transfer_optimizers/`, one module per search; the moves legal in each gameweek, and what taking one scores, are in `branches.py` |
-| change how a squad is valued over the window: substitute weights, discounting later gameweeks | `optimization/squad_score.py` |
+| change how transfers across several gameweeks are searched | `optimization/transfer_optimizers/`, one module per search; the moves allowed in each gameweek, and what each one scores, are in `branches.py` |
+| change how a squad's score over several gameweeks is calculated, e.g. substitute weights or discounting later gameweeks | `optimization/squad_score.py` |
 | change the limit on total hits, or other transfer constraints | `optimization/protocols.py`, and `transfer_constraints` in `cli/_components.py` |
 | change how a squad is built from scratch | `optimization/squad_optimizers/` |
 | change how the starting eleven or captain is picked | `squad/lineup.py` |
 | change selling prices | `squad/pricing.py` |
 | change what a search saves to the database | `optimization/persist.py` |
-| debug a transfer search that hangs or whose workers crash | `core/concurrency.py`, which forks the workers and runs the stall watchdog. Read its docstring before changing how anything starts |
+| debug a transfer search that hangs or whose workers crash | `core/concurrency.py`, which forks the worker processes and runs a watchdog that reports stalled workers. Read its docstring before changing how workers are started |
 
 ### Output, settings and everything else
 
@@ -109,16 +109,16 @@ module and line that wrote it, e.g. `airsenal.prediction.run:112`.
 
 ## When a guardrail test fails
 
-| test | what it wants |
+| test | what it checks |
 |---|---|
-| `tests/test_argument_order.py` | arguments in the documented order: see [CodingConventions.md](../CodingConventions.md) |
-| `tests/test_naming_conventions.py` | `gameweek` written out, and `Position` and `Chip` enums rather than strings |
-| `tests/test_component_tables.py` | every component table entry builds with no arguments and has its protocol's methods |
-| `tests/test_navigation_docs.py` | this page and the map in architecture.md list every command and module |
-| `tests/game/test_game_is_plain_python.py` | `game/` imports nothing outside the standard library |
+| `tests/test_argument_order.py` | function arguments are in the documented order: see [CodingConventions.md](../CodingConventions.md) |
+| `tests/test_naming_conventions.py` | `gameweek` is written out in full, and the `Position` and `Chip` enums are used rather than strings |
+| `tests/test_component_tables.py` | every entry in a model or optimizer table can be built with no arguments and has the methods its protocol requires |
+| `tests/test_navigation_docs.py` | this page lists every command, and the map in architecture.md lists every module |
+| `tests/game/test_game_is_plain_python.py` | `game/` imports nothing outside the standard library and `game/` itself |
 | `tests/test_import_side_effects.py` | importing a module touches neither the network nor the database |
-| `uv run lint-imports` | no import goes up the chain in [architecture.md](architecture.md) |
+| `uv run lint-imports` | no package imports from one above it in the chain in [architecture.md](architecture.md) |
 
-The rest of `tests/` mirrors the package: the tests for `squad/squad.py` are in
-`tests/squad/`. `tests/e2e/` runs real fits and searches against a small seeded
-database.
+The rest of `tests/` mirrors the package layout, so the tests for
+`squad/squad.py` are in `tests/squad/`. `tests/e2e/` runs real model fits and
+transfer searches against a small test database.
