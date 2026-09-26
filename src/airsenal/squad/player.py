@@ -8,7 +8,7 @@ either - it is what a `Squad` holds fifteen of.
 
 import uuid
 from collections.abc import Iterable
-from typing import Any
+from typing import Any, Self
 
 from sqlalchemy.orm import Session
 
@@ -77,6 +77,12 @@ class CandidatePlayer:
     def __str__(self) -> str:
         return self.display_name or self.name
 
+    def __copy__(self) -> Self:
+        """A shallow copy, skipping `copy.copy`'s generic path: squads make many."""
+        new = object.__new__(type(self))
+        new.__dict__.update(self.__dict__)
+        return new
+
     def __getstate__(self) -> dict[str, Any]:
         """
         Drop the database session when pickling.
@@ -95,6 +101,50 @@ class CandidatePlayer:
             self.predicted_points[tag] = get_predicted_points_for_player(
                 self.player_id, tag, season=self.season, dbsession=self.dbsession
             )
+
+
+class CandidateCache:
+    """
+    Candidate players built once each, for a search that tries them in many squads.
+
+    Building one reads its team, position and price from every attribute row the
+    player has; trying every pair of transfers would otherwise do that for the same
+    player thousands of times. Add a `copy.copy` of an entry to a squad, not the
+    entry itself, so each squad's lineup flags stay its own.
+    """
+
+    def __init__(self, gameweek: int, season: str) -> None:
+        self.gameweek = gameweek
+        self.season = season
+        self._players: dict[int, CandidatePlayer] = {}
+
+    @classmethod
+    def reuse(
+        cls, candidates: "CandidateCache | None", gameweek: int, season: str
+    ) -> "CandidateCache":
+        """`candidates` if it prices players as at `gameweek` of `season`, else new."""
+        if (
+            candidates is not None
+            and candidates.gameweek == gameweek
+            and candidates.season == season
+        ):
+            return candidates
+        return cls(gameweek, season)
+
+    def get(self, player: "Player | SquadPlayer") -> "SquadPlayer":
+        """
+        The candidate for `player`, built on first request.
+
+        Anything already a squad player is its own candidate, as `add_player`
+        takes it.
+        """
+        if not isinstance(player, Player):
+            return player
+        candidate = self._players.get(player.player_id)
+        if candidate is None:
+            candidate = CandidatePlayer(player, self.gameweek, self.season)
+            self._players[player.player_id] = candidate
+        return candidate
 
 
 class DummyPlayer:
@@ -128,6 +178,12 @@ class DummyPlayer:
 
     def calc_predicted_points(self, tag: str) -> None:
         """Nothing to look up: a dummy's points are fixed at construction."""
+
+    def __copy__(self) -> Self:
+        """A shallow copy, skipping `copy.copy`'s generic path: squads make many."""
+        new = object.__new__(type(self))
+        new.__dict__.update(self.__dict__)
+        return new
 
 
 type SquadPlayer = CandidatePlayer | DummyPlayer

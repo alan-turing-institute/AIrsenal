@@ -45,6 +45,7 @@ from airsenal.optimization.transfer_optimizers.branches import (
     make_best_transfers,
     next_gameweek_transfers,
 )
+from airsenal.squad.player import CandidateCache
 from airsenal.squad.squad import Squad
 
 # What the plan-tree queue carries: either a node still to expand, or the
@@ -107,6 +108,8 @@ def optimize(
     profile = config.profile
     strategy_set = config.strategies
     squad_optimizer = request.squad_optimizer
+    # every node prices players as at the root, so this worker builds each once
+    candidates = CandidateCache(gameweeks[0], season)
 
     while True:
         watchdog.idle()
@@ -152,6 +155,7 @@ def optimize(
                 scoring=request.scoring,
                 squad_optimizer=squad_optimizer,
                 progress=partial(updater, pid) if updater is not None else None,
+                candidates=candidates,
             )
             strategy = strategy_set.create(move)
 

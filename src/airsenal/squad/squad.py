@@ -5,6 +5,7 @@ Budget, squad size, players per position and the three-per-club limit are all
 checked here.
 """
 
+import copy
 from collections import defaultdict
 from dataclasses import dataclass
 
@@ -83,6 +84,22 @@ class Squad:
         """Return a concise representation without rendering to the console."""
         return f"Squad(players={len(self.players)}, budget={self.budget})"
 
+    def copy(self) -> "Squad":
+        """
+        A copy whose players can be changed without changing this squad's.
+
+        Each player is copied, but the predicted points it has looked up are
+        shared with its copies: they only ever gain tags, from the database. Far
+        cheaper than a deep copy, and a search makes one for every candidate squad.
+        """
+        new = Squad.__new__(Squad)
+        new.players = [copy.copy(player) for player in self.players]
+        new.budget = self.budget
+        new.season = self.season
+        new.num_position = dict(self.num_position)
+        new.count_per_team = defaultdict(int, self.count_per_team)
+        return new
+
     def is_complete(self) -> bool:
         """Whether the squad has its full complement of players."""
         return sum(self.num_position.values()) == SQUAD_SIZE
@@ -125,13 +142,7 @@ class Squad:
             self.budget -= player.purchase_price
             return True
 
-        # check if constraints are met
-        if (
-            not self.check_no_duplicate_player(player)
-            or not self.check_num_in_position(player)
-            or (check_budget and not self.check_cost(player))
-            or (check_team and not self.check_num_per_team(player))
-        ):
+        if not self.can_add(player, check_budget=check_budget, check_team=check_team):
             return False
         self.players.append(player)
         self.count_per_team[player.team] += 1
@@ -198,6 +209,17 @@ class Squad:
             season=self.season,
             dbsession=dbsession,
             fetcher=fetcher,
+        )
+
+    def can_add(
+        self, player: SquadPlayer, check_budget: bool = True, check_team: bool = True
+    ) -> bool:
+        """Whether `add_player` would add this player, without adding them."""
+        return (
+            self.check_no_duplicate_player(player)
+            and self.check_num_in_position(player)
+            and (not check_budget or self.check_cost(player))
+            and (not check_team or self.check_num_per_team(player))
         )
 
     def check_no_duplicate_player(self, player: SquadPlayer) -> bool:

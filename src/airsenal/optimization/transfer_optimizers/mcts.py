@@ -57,6 +57,7 @@ from airsenal.optimization.transfer_optimizers.branches import (
     make_best_transfers,
     next_gameweek_transfers,
 )
+from airsenal.squad.player import CandidateCache
 from airsenal.squad.squad import Squad
 
 # (move, free transfers it leaves, total hit including it, hit this gameweek), as
@@ -92,6 +93,7 @@ def _make_node(
     squad: Squad,
     move: GameweekMove,
     depth: int,
+    candidates: CandidateCache,
 ) -> MadeNode:
     """Make one move from a node's squad, as a worker of the exhaustive search would."""
     transfer_request = TransferRequest(
@@ -104,26 +106,32 @@ def _make_node(
         num_iterations=config.num_iterations,
         scoring=request.scoring,
         squad_optimizer=request.squad_optimizer,
+        candidates=candidates,
     )
     return make_best_transfers(transfer_request, config.strategies.create(move))
 
 
+def _candidates_for(request: TransferSearchRequest) -> CandidateCache:
+    """Candidates for every node of `request`: all are priced as at its root."""
+    return CandidateCache(request.gameweeks[0], request.season)
+
+
 # The search a worker process makes nodes for, set once when the worker starts
-# rather than sent with every node.
-_worker_search: tuple[TransferSearchRequest, MCTSConfig] | None = None
+# rather than sent with every node, with the candidates it has built so far.
+_worker_search: tuple[TransferSearchRequest, MCTSConfig, CandidateCache] | None = None
 
 
 def _start_worker(request: TransferSearchRequest, config: MCTSConfig) -> None:
     global _worker_search  # noqa: PLW0603
-    _worker_search = (request, config)
+    _worker_search = (request, config, _candidates_for(request))
 
 
 def _make_node_in_worker(squad: Squad, move: GameweekMove, depth: int) -> MadeNode:
     if _worker_search is None:
         msg = "An MCTS worker was asked for a node before it was started"
         raise RuntimeError(msg)
-    request, config = _worker_search
-    return _make_node(request, config, squad, move, depth)
+    request, config, candidates = _worker_search
+    return _make_node(request, config, squad, move, depth, candidates)
 
 
 def _executor(request: TransferSearchRequest, config: MCTSConfig) -> Executor:
@@ -186,6 +194,7 @@ class _Search:
         self.rng = random.Random(config.seed)
         self.n_gameweeks = len(request.gameweeks)
         self.finished: list[Plan] = []
+        self.candidates = _candidates_for(request)
         # moves handed out to be made, and moves made
         self.claimed = 0
         self.expansions = 0
@@ -332,7 +341,12 @@ class _Search:
                 while (claim := self.claim()) is not None:
                     node, branch = claim
                     made = _make_node(
-                        self.request, self.config, node.squad, branch[0], node.depth
+                        self.request,
+                        self.config,
+                        node.squad,
+                        branch[0],
+                        node.depth,
+                        self.candidates,
                     )
                     self.complete(node, branch, made)
                     progress.advance(task)

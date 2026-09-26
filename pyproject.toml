@@ -155,7 +155,7 @@ max-args = 12          # run_optimization, make_new_squad
 max-positional-args = 12  # run_optimization
 max-branches = 18      # Squad.get_actual_points
 max-statements = 76    # test_deap_optimization_creates_valid_squad
-max-returns = 8        # Player.get_gameweek_attributes
+max-returns = 8        # chip_timing._double
 
 [tool.ruff.lint.per-file-ignores]
 "src/airsenal/cli/*.py" = [
