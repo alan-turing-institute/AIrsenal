@@ -2,8 +2,12 @@
 The Monte Carlo transfer search, on a tree whose scores are made up.
 
 Each move scores a fixed number of points that depends only on the move and its
-gameweek, so the best plan can be found by brute force and compared.
+gameweek, so the best plan can be found by brute force and compared. Workers are
+threads rather than forked processes, which pytest on macOS cannot fork safely.
 """
+
+import threading
+from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 
@@ -72,17 +76,32 @@ def made_up_scores(monkeypatch):
     return calls
 
 
+@pytest.fixture(autouse=True)
+def thread_workers(monkeypatch):
+    """Make nodes on threads, started the way the forked workers are."""
+
+    def executor(request, config):
+        return ThreadPoolExecutor(
+            max_workers=config.num_thread,
+            initializer=mcts._start_worker,
+            initargs=(request, config),
+        )
+
+    monkeypatch.setattr(mcts, "_executor", executor)
+
+
 def _request(
     constraints: TransferConstraints | None = None,
     chips: ChipGameweeks | None = None,
     num_free_transfers: int = 1,
+    gameweeks: list[int] = GAMEWEEKS,
 ) -> TransferSearchRequest:
     return TransferSearchRequest(
         starting_squad=_Squad(),  # type: ignore[arg-type]
-        gameweeks=GAMEWEEKS,
+        gameweeks=gameweeks,
         tag="tag",
         season="2425",
-        chip_schedule=ChipSchedule.from_gameweeks(GAMEWEEKS, chips or ChipGameweeks()),
+        chip_schedule=ChipSchedule.from_gameweeks(gameweeks, chips or ChipGameweeks()),
         num_free_transfers=num_free_transfers,
         constraints=constraints or TransferConstraints(),
     )
@@ -127,10 +146,13 @@ def _brute_force(request: TransferSearchRequest) -> tuple[float, int]:
     ],
     ids=["defaults", "no hit limit", "wildcard any gameweek"],
 )
-def test_a_budget_as_big_as_the_tree_finds_the_best_plan(request_):
+@pytest.mark.parametrize("num_thread", [1, 4])
+def test_a_budget_as_big_as_the_tree_finds_the_best_plan(request_, num_thread):
     """Once every node is made, the search is exhaustive, and must agree with it."""
     best, n_nodes = _brute_force(request_)
-    optimizer = MCTSOptimizer(MCTSConfig(max_expansions=10 * n_nodes, seed=0))
+    optimizer = MCTSOptimizer(
+        MCTSConfig(max_expansions=10 * n_nodes, num_thread=num_thread, seed=0)
+    )
 
     result = optimizer.search(request_)
 
@@ -138,12 +160,20 @@ def test_a_budget_as_big_as_the_tree_finds_the_best_plan(request_):
     assert len(result.best) == len(GAMEWEEKS)
 
 
-def test_the_search_stops_once_every_node_is_made(made_up_scores):
-    """The rest of the budget would only revisit plans already finished."""
-    request = _request()
+@pytest.mark.parametrize("num_thread", [1, 4])
+def test_the_search_stops_once_every_node_is_made(made_up_scores, num_thread):
+    """
+    The rest of the budget would only revisit plans already finished.
+
+    With workers, a node must not be closed off while a move below it is still
+    out, or the subtree that move starts would never be searched.
+    """
+    request = _request(TransferConstraints(max_total_hit=None, max_opt_transfers=3))
     _, n_nodes = _brute_force(request)
 
-    MCTSOptimizer(MCTSConfig(max_expansions=10 * n_nodes, seed=0)).search(request)
+    MCTSOptimizer(
+        MCTSConfig(max_expansions=10 * n_nodes, num_thread=num_thread, seed=0)
+    ).search(request)
 
     assert len(made_up_scores) == n_nodes
 
@@ -157,11 +187,14 @@ def test_no_node_is_made_twice(made_up_scores):
     assert len(labels) == len(set(labels))
 
 
+@pytest.mark.parametrize("num_thread", [1, 4])
 @pytest.mark.parametrize("max_expansions", [1, 5, 12])
-def test_the_budget_is_counted_in_nodes_made(made_up_scores, max_expansions):
-    MCTSOptimizer(MCTSConfig(max_expansions=max_expansions, seed=0)).search(
-        _request(TransferConstraints(max_total_hit=None, max_opt_transfers=3))
-    )
+def test_the_budget_is_counted_in_nodes_made(
+    made_up_scores, max_expansions, num_thread
+):
+    MCTSOptimizer(
+        MCTSConfig(max_expansions=max_expansions, num_thread=num_thread, seed=0)
+    ).search(_request(TransferConstraints(max_total_hit=None, max_opt_transfers=3)))
 
     assert len(made_up_scores) == max_expansions
 
@@ -196,9 +229,10 @@ def test_no_legal_move_leaves_the_baseline_alone():
     assert result.best.is_baseline
 
 
-def test_a_seed_makes_the_search_repeatable():
+def test_a_seed_makes_a_single_worker_search_repeatable():
+    """With workers, the order nodes come back in is up to the workers."""
     request = _request(TransferConstraints(max_total_hit=None, max_opt_transfers=3))
-    config = MCTSConfig(max_expansions=10, seed=3)
+    config = MCTSConfig(max_expansions=10, num_thread=1, seed=3)
 
     first = MCTSOptimizer(config).search(request)
     second = MCTSOptimizer(config).search(request)
@@ -206,6 +240,73 @@ def test_a_seed_makes_the_search_repeatable():
     assert [p.label() for p in first.considered] == [
         p.label() for p in second.considered
     ]
+
+
+def test_workers_make_nodes_at_the_same_time(monkeypatch, made_up_scores):
+    """Up to `num_thread` moves are out at once, not one after another."""
+    num_thread = 3
+    # every worker must be inside at once for any of them to get past it
+    barrier = threading.Barrier(num_thread, timeout=10)
+    make = mcts.make_best_transfers
+
+    def make_together(request, strategy):
+        if len(made_up_scores) < num_thread:
+            barrier.wait()
+        return make(request, strategy)
+
+    monkeypatch.setattr(mcts, "make_best_transfers", make_together)
+    request = _request(TransferConstraints(max_total_hit=None, max_opt_transfers=3))
+
+    MCTSOptimizer(
+        MCTSConfig(max_expansions=num_thread, num_thread=num_thread, seed=0)
+    ).search(request)
+
+    assert len(made_up_scores) == num_thread
+
+
+def test_a_node_is_not_closed_off_while_a_move_below_it_is_out():
+    """
+    Otherwise the search stops early and the moves still out are never used.
+
+    A one-gameweek window, so every move made is a finished plan: once the first
+    comes back, every node the root has is done, but the others are still out.
+    """
+    request = _request(
+        TransferConstraints(max_total_hit=None, max_opt_transfers=3), gameweeks=[5]
+    )
+    search = mcts._Search(request, MCTSConfig(num_thread=4, seed=0))
+    claims = []
+    while (claim := search.claim()) is not None:
+        claims.append(claim)
+    assert len(claims) > 1
+
+    for node, branch in claims[:-1]:
+        made = mcts._make_node(request, search.config, node.squad, branch[0], 0)
+        search.complete(node, branch, made)
+        assert not search.root.exhausted
+
+    node, branch = claims[-1]
+    search.complete(
+        node, branch, mcts._make_node(request, search.config, node.squad, branch[0], 0)
+    )
+    assert search.root.exhausted
+
+
+def test_a_move_being_made_steers_the_next_choice_away():
+    """A subtree with a move out counts it as a visit, so UCB1 favours the other."""
+    search = mcts._Search(_request(), MCTSConfig(num_thread=2, seed=0))
+    parent = search.root
+    parent.untried = []
+    first, second = (
+        mcts._Node(parent.squad, parent.plan, 1, 0, parent=parent) for _ in range(2)
+    )
+    parent.children = [first, second]
+    for child in (first, second):
+        child.visits, child.total_value = 1, 10.0
+    parent.visits = 2
+    search.mark_pending(first, 1)
+
+    assert search.ucb(second, parent) > search.ucb(first, parent)
 
 
 def test_the_mcts_is_a_named_transfer_optimizer():
