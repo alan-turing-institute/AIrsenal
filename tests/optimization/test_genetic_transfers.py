@@ -6,6 +6,7 @@ rules are the real ones. The score is each squad's total price, so the search
 has something to climb that needs no predictions.
 """
 
+import random
 from unittest.mock import patch
 
 import pytest
@@ -134,6 +135,41 @@ def test_the_base_squad_itself_is_untouched(cheap_squad, dbsession):
     opt.build_squad(opt.optimize(CONFIG)[0])
 
     assert (_ids(cheap_squad), cheap_squad.budget) == before
+
+
+@pytest.fixture
+def departed(cheap_squad):
+    """A forward of the squad's who is no longer listed at the root gameweek."""
+    forward = next(p for p in cheap_squad.players if p.position == Position.FWD)
+    listed = list_players
+
+    def list_players_without(*args, **kwargs):
+        return [p for p in listed(*args, **kwargs) if p.player_id != forward.player_id]
+
+    with patch(f"{MODULE}.list_players", list_players_without):
+        yield forward.player_id
+
+
+def test_a_player_no_longer_listed_is_replaced_in_the_same_position(
+    cheap_squad, dbsession, departed
+):
+    random.seed(0)  # the stand-in in the seed individual is picked before optimize
+    opt = _transfer_opt(cheap_squad, 1, dbsession)
+    squad = opt.build_squad(opt.optimize(CONFIG)[0])
+
+    (bought,) = [p for p in squad.players if p.player_id not in _ids(cheap_squad)]
+    assert _ids(cheap_squad) - _ids(squad) == {departed}
+    assert bought.position == Position.FWD
+
+
+def test_no_legal_squad_within_the_transfer_limit_is_an_error(
+    cheap_squad, dbsession, departed
+):
+    """Keeping the squad is not possible when one of its players has gone."""
+    opt = _transfer_opt(cheap_squad, 0, dbsession)
+
+    with pytest.raises(RuntimeError, match="no legal squad within 0 transfers"):
+        opt.optimize(CONFIG)
 
 
 def test_a_transfer_limit_needs_a_squad_to_make_transfers_from():

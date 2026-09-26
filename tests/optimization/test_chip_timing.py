@@ -189,6 +189,111 @@ def test_the_second_half_brings_the_chips_back(fixtures):
     assert "no chips left" not in decisions[1][2]
 
 
+class _Injured:
+    def is_injured_or_suspended(self, season, current_gameweek, fixture_gameweek):  # noqa: ARG002
+        return True
+
+
+@pytest.mark.parametrize("second_goalkeeper", [_Injured(), None])
+def test_a_player_who_cannot_play_does_not_count_towards_the_eleven(
+    fixtures, monkeypatch, second_goalkeeper
+):
+    """
+    Only the first goalkeeper's club blanks, but the second is injured or unknown.
+
+    With the second goalkeeper fit, the same blank is left alone.
+    """
+    fixtures[4] = [_Fixture(CLUBS[1], CLUBS[18]), *_normal()[1:9]]
+    monkeypatch.setattr(
+        chip_timing,
+        "get_player",
+        lambda player_id, **k: second_goalkeeper if player_id == 1 else _Fit(),
+    )
+
+    decisions = decide_chips(_squad(), ALL_CHIPS, [4], "tag", season="2526")
+
+    assert _chips(decisions) == [Chip.FREE_HIT]
+
+
+NO_FREE_HIT = frozenset({Chip.WILDCARD, Chip.TRIPLE_CAPTAIN, Chip.BENCH_BOOST})
+
+
+def test_a_blank_leaving_nine_players_is_a_wildcard_without_a_free_hit(fixtures):
+    fixtures[4] = _blank(set(CLUBS[:6]))
+
+    decisions = decide_chips(_squad(), NO_FREE_HIT, [4], "tag", season="2526")
+
+    assert _chips(decisions) == [Chip.WILDCARD]
+
+
+@pytest.mark.parametrize(("gameweek", "chip"), [(17, Chip.WILDCARD), (4, None)])
+def test_a_blank_without_a_free_hit_wildcards_only_if_the_wildcard_is_expiring(
+    fixtures, gameweek, chip
+):
+    """
+    Thirteen players left, but neither goalkeeper: bad, but not severe.
+
+    In 2425 only the wildcard expires at gameweek 19, so none of the other chips
+    is forced.
+    """
+    fixtures[gameweek] = _blank({CLUBS[0]})
+
+    decisions = decide_chips(_squad(), NO_FREE_HIT, [gameweek], "tag", season="2425")
+
+    assert _chips(decisions) == [chip]
+
+
+@pytest.mark.parametrize(
+    ("gameweek_fixtures", "chip"),
+    [
+        (_blank({CLUBS[2]}), Chip.FREE_HIT),
+        (_double([CLUBS[3]]), Chip.WILDCARD),
+    ],
+)
+def test_a_forced_chip_is_chosen_by_the_kind_of_gameweek(
+    fixtures, gameweek_fixtures, chip
+):
+    fixtures[17] = gameweek_fixtures
+
+    decisions = decide_chips(_squad(), ALL_CHIPS, [17], "tag", season="2526")
+
+    assert _chips(decisions) == [chip]
+
+
+BOOSTS = frozenset({Chip.BENCH_BOOST, Chip.TRIPLE_CAPTAIN})
+
+
+@pytest.mark.parametrize(
+    ("available", "chip"),
+    [
+        (BOOSTS, Chip.BENCH_BOOST),
+        (frozenset({Chip.WILDCARD}), Chip.WILDCARD),
+        (frozenset({Chip.FREE_HIT}), Chip.FREE_HIT),
+    ],
+)
+def test_a_last_chip_goes_on_the_biggest_double_before_it_expires(
+    fixtures, available, chip
+):
+    """One club doubled, not the captain's, and nothing bigger to come."""
+    fixtures[6] = _double([CLUBS[3]])
+
+    decisions = decide_chips(_squad(), available, [6], "tag", season="2526")
+
+    assert _chips(decisions) == [chip]
+
+
+@pytest.mark.parametrize(
+    "available", [BOOSTS, frozenset({Chip.WILDCARD}), frozenset({Chip.FREE_HIT})]
+)
+def test_a_last_chip_waits_for_a_bigger_double(fixtures, available):
+    fixtures[6] = _double([CLUBS[3]])
+    fixtures[10] = _double([CLUBS[3], CLUBS[4]])
+
+    decisions = decide_chips(_squad(), available, [6], "tag", season="2526")
+
+    assert _chips(decisions) == [None]
+
+
 @pytest.mark.parametrize(
     "players",
     [
