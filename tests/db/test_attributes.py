@@ -1,3 +1,5 @@
+import random
+
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
 
@@ -198,3 +200,61 @@ def test_availability_is_not_queried_once_per_fixture():
         assert player.is_injured_or_suspended(season, gameweek, gameweek)
 
     assert sum("player_attributes" in s for s in statements) == 1
+
+
+def _scan(player, gameweek, season, before_and_after=False):
+    """What `get_gameweek_attributes` returned before it indexed the rows."""
+    gameweek_before, gameweek_after = 0, 100
+    attr_before = attr_after = None
+    for attr in player.attributes:
+        if attr.season != season:
+            continue
+        if gameweek is None or attr.gameweek == gameweek:
+            return attr
+        if gameweek_before < attr.gameweek < gameweek:
+            gameweek_before, attr_before = attr.gameweek, attr
+        elif gameweek < attr.gameweek < gameweek_after:
+            gameweek_after, attr_after = attr.gameweek, attr
+    if attr_before is None and attr_after is None:
+        return None
+    if not attr_after:
+        return attr_before
+    if not attr_before:
+        return attr_after
+    if before_and_after:
+        return (attr_before, attr_after)
+    if (gameweek_after - gameweek) >= (gameweek - gameweek_before):
+        return attr_before
+    return attr_after
+
+
+def test_the_attribute_index_finds_what_a_scan_of_every_row_found():
+    """
+    Every lookup agrees with the scan the index replaced.
+
+    Including gameweeks 0 and 100, which only an exact match returns; a
+    repeated gameweek, where the first row wins; and rows added after a lookup.
+    """
+    rng = random.Random(0)
+    for _ in range(200):
+        player = Player()
+        player.player_id = 1
+        player.attributes = []
+
+        def add_rows(n, player=player):
+            for _ in range(n):
+                pa = PlayerAttributes()
+                pa.season = rng.choice(["2324", "2425"])
+                pa.gameweek = rng.choice([0, 100, *range(1, 39)])
+                pa.price = rng.randint(40, 130)
+                player.attributes.append(pa)
+
+        add_rows(rng.randint(0, 8))
+        for _ in range(2):
+            for season in ["2324", "2425", "2526"]:
+                for gameweek in [None, *range(0, 101, 3)]:
+                    for before_and_after in (False, True):
+                        assert player.get_gameweek_attributes(
+                            gameweek, season, before_and_after
+                        ) == _scan(player, gameweek, season, before_and_after)
+            add_rows(rng.randint(1, 3))

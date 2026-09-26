@@ -1,5 +1,7 @@
 """The SQLAlchemy models: every table in the AIrsenal database."""
 
+from bisect import bisect_left
+from dataclasses import dataclass, field
 from typing import Annotated
 
 from sqlalchemy import ForeignKey, Index, String, UniqueConstraint, text
@@ -193,6 +195,29 @@ class Player(Base):
         # a pair only comes back with before_and_after, so this never sees one
         return None if isinstance(attr, tuple) else attr
 
+    def _season_attributes(self, season: str) -> "_SeasonAttributes | None":
+        """
+        This player's attributes for `season`, indexed by gameweek.
+
+        Built from `attributes` on first use and kept on the instance, and built
+        again if a row has been added or removed since. A row changed in place
+        needs nothing: the index holds the rows themselves.
+        """
+        attributes = self.attributes
+        cached = self.__dict__.get("_attributes_by_season")
+        if cached is None or cached[0] != len(attributes):
+            by_season: dict[str, _SeasonAttributes] = {}
+            for attr in attributes:
+                if attr.season not in by_season:
+                    by_season[attr.season] = _SeasonAttributes(first=attr)
+                # the first row for a gameweek wins, as the scan it replaced did
+                by_season[attr.season].by_gameweek.setdefault(attr.gameweek, attr)
+            for season_attributes in by_season.values():
+                season_attributes.gameweeks = sorted(season_attributes.by_gameweek)
+            cached = (len(attributes), by_season)
+            self.__dict__["_attributes_by_season"] = cached
+        return cached[1].get(season)
+
     def get_gameweek_attributes(
         self, gameweek: int | None, season: str, before_and_after: bool = False
     ) -> "PlayerAttributes | tuple[PlayerAttributes, PlayerAttributes] | None":
@@ -203,48 +228,58 @@ class Player(Base):
         With `before_and_after` True and no exact match, returns both the nearest
         gameweek before and the nearest after, as a tuple.
         """
-        gameweek_before = 0
-        gameweek_after = 100
-        attr_before = None
-        attr_after = None
-
-        for attr in self.attributes:
-            if attr.season != season:
-                continue
-
-            if gameweek is None:
-                # trying to match season only
-                return attr
-            if attr.gameweek == gameweek:
-                return attr
-            if (attr.gameweek < gameweek) and (attr.gameweek > gameweek_before):
-                # update last available attr before specified gameweek
-                gameweek_before = attr.gameweek
-                attr_before = attr
-            elif (attr.gameweek > gameweek) and (attr.gameweek < gameweek_after):
-                # update next available attr after specified gameweek
-                gameweek_after = attr.gameweek
-                attr_after = attr
-
-        # ran through all attributes without finding exact gameweek and season match
-        if attr_before is None and attr_after is None:
-            # no attributes for this player in this season
+        season_attributes = self._season_attributes(season)
+        if season_attributes is None:
             return None
-        if not attr_after:
-            return attr_before
-        if not attr_before:
-            return attr_after
-        if before_and_after:
-            return (attr_before, attr_after)
-        # return attributes at gameweek nearest to input gameweek
-        if gameweek is not None and (gameweek_after - gameweek) >= (
-            gameweek - gameweek_before
-        ):
-            return attr_before
-        return attr_after
+        if gameweek is None:
+            # trying to match season only
+            return season_attributes.first
+        exact = season_attributes.by_gameweek.get(gameweek)
+        if exact is not None:
+            return exact
+
+        return season_attributes.nearest(gameweek, before_and_after)
 
     def __repr__(self) -> str:
         return self.display_name or self.name
+
+
+@dataclass
+class _SeasonAttributes:
+    """One player's attribute rows for one season, indexed by gameweek."""
+
+    # the first row in `Player.attributes` order, which loads latest gameweek first
+    first: "PlayerAttributes"
+    by_gameweek: dict[int, "PlayerAttributes"] = field(default_factory=dict)
+    gameweeks: list[int] = field(default_factory=list)
+
+    def nearest(
+        self, gameweek: int, before_and_after: bool
+    ) -> "PlayerAttributes | tuple[PlayerAttributes, PlayerAttributes] | None":
+        """
+        The row nearest a gameweek with no row of its own.
+
+        Only gameweeks from 1 to 99 count: one at 0 or from 100 on is found by an
+        exact match alone. A tie goes to the gameweek before, and with
+        `before_and_after` both neighbours come back when there are two.
+        """
+        i = bisect_left(self.gameweeks, gameweek)
+        gameweek_before, attr_before = 0, None
+        if i > 0 and self.gameweeks[i - 1] > 0:
+            gameweek_before = self.gameweeks[i - 1]
+            attr_before = self.by_gameweek[gameweek_before]
+        gameweek_after, attr_after = 100, None
+        if i < len(self.gameweeks) and self.gameweeks[i] < 100:
+            gameweek_after = self.gameweeks[i]
+            attr_after = self.by_gameweek[gameweek_after]
+
+        if attr_before is None or attr_after is None:
+            return attr_before if attr_after is None else attr_after
+        if before_and_after:
+            return (attr_before, attr_after)
+        if (gameweek_after - gameweek) >= (gameweek - gameweek_before):
+            return attr_before
+        return attr_after
 
 
 class PlayerMapping(Base):
