@@ -656,6 +656,43 @@ Calibration corrects for those on average, but not for the particular players wh
 tend to get them. It's worth 0.0005, which is half as much as the per-position prior
 and five times as much as time weighting: a real improvement, but a small one.
 
+### A conversion factor per player: rejected
+
+`calibrate` applies one conversion rate per position. This tried a separate rate for
+each player, shrunk towards the position's rate, multiplying their calibrated expected
+goals (or assists) by `(actual + k * position rate) / (expected + k)`, summed over the
+player's matches in the fitting window. `k` is in expected goals: a small `k` trusts a
+player's own finishing record, and `k = ∞` is the model as it ships.
+
+Measured over the same gameweeks as the tables above, on 18033 performances, where the
+default scores -0.62808:
+
+| k | 1 | 3 | 10 | 30 | 100 | ∞ |
+|---|---|---|---|---|---|---|
+| goals, `goal_weight = 0.15` | -0.63116 | -0.62963 | -0.62864 | -0.62825 | -0.62812 | **-0.62808** |
+| goals, `goal_weight = 0` | -0.63135 | -0.62981 | -0.62891 | -0.62864 | -0.62859 | -0.62861 |
+| assists, `goal_weight = 0.15` | -0.63024 | -0.62881 | -0.62812 | **-0.62801** | -0.62804 | -0.62808 |
+
+**A finishing factor for goals is worse at every `k`**, and gets closer to the default
+as `k` grows. With `goal_weight = 0`, its best is -0.62859, still worse than
+`goal_weight = 0.15` without it. The reason is that finishing doesn't vary between players
+more than chance would. Using defender, midfielder and forward seasons, players' actual goals vary
+*less* around their expected goals than Poisson noise would produce, in all three
+seasons. Correlating goals minus xG between consecutive seasons, for players with at
+least 3 xG in both, gives +0.16 (69 players, 2324 to 2425) and +0.07 (53, 2425 to 2526).
+That's the same result as the half-season split [above](#why-it-should-work), and as
+for teams.
+
+**A factor for assists is no better than the default either.** Assists minus xA do
+persist between seasons (+0.42 and +0.23, for players with at least 2 xA in both), but
+`goal_weight` already mixes in each player's actual assists, and a separate factor adds
+almost nothing on top. Its best, `k = 30`, gains +0.00007, and the seasons disagree:
++0.00019 in 2425, +0.00003 in 2526, -0.00002 in 2324. That's a seventh of what
+`goal_weight` is worth, measured in sample.
+
+The database has no per-shot expected goals, so penalties can't be separated from open
+play. A factor for penalty takers alone hasn't been tried.
+
 ### Why it's the default
 
 `DEFAULT_PLAYER_MODEL` is `xg` for the same reason `DEFAULT_TEAM_MODEL` is: it's better
