@@ -87,6 +87,7 @@ def run(
     transfer_optimizer: options.TransferOptimizer = DEFAULT_TRANSFER_OPTIMIZER,
     squad_optimizer: options.SquadOptimizer = DEFAULT_SQUAD_OPTIMIZER,
     num_thread: options.NumThread = None,
+    max_expansions: options.MaxExpansions = None,
     max_transfers: options.MaxTransfers = DEFAULT_MAX_OPT_TRANSFERS,
     max_hit: options.MaxHit = DEFAULT_MAX_TOTAL_HIT,
     allow_unused: options.AllowUnused = False,
@@ -110,7 +111,7 @@ def run(
             epsilon=epsilon,
         ),
         transfer_optimizer=build_transfer_optimizer(
-            transfer_optimizer, num_thread=num_thread
+            transfer_optimizer, num_thread=num_thread, max_expansions=max_expansions
         ),
         squad_optimizer=build_squad_optimizer(squad_optimizer),
         constraints=transfer_constraints(max_hit, allow_unused, max_transfers),

@@ -71,9 +71,10 @@ type MadeNode = tuple[Squad, Proposal, float]
 class MCTSConfig:
     """Settings for the Monte Carlo search, as opposed to the problem it is solving."""
 
-    # Nodes to make before stopping, each one a strategy run and scored. On a
-    # six-gameweek window the exhaustive tree makes about a thousand.
-    max_expansions: int = 200
+    # Nodes to make before stopping, each one a strategy run and scored. The
+    # exhaustive tree has about a thousand on a six-gameweek window and 2,700 on
+    # seven, where the best plan was found within 310.
+    max_expansions: int = 300
     # In points, since that is what a node's value is in: how far a rarely
     # visited move may trail the best one and still be tried.
     exploration_constant: float = 5.0

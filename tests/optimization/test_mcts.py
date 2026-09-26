@@ -26,6 +26,7 @@ from airsenal.optimization.transfer_optimizers import (
     mcts,
 )
 from airsenal.optimization.transfer_optimizers.branches import (
+    count_tree_nodes,
     next_gameweek_transfers,
 )
 from airsenal.optimization.transfer_optimizers.mcts import MCTSConfig, MCTSOptimizer
@@ -158,6 +159,22 @@ def test_a_budget_as_big_as_the_tree_finds_the_best_plan(request_, num_thread):
 
     assert result.best.total_score == pytest.approx(best)
     assert len(result.best) == len(GAMEWEEKS)
+
+
+@pytest.mark.parametrize(
+    "request_",
+    [
+        _request(),
+        _request(TransferConstraints(max_total_hit=None, max_opt_transfers=3)),
+        _request(chips=ChipGameweeks(wildcard=0)),
+    ],
+    ids=["defaults", "no hit limit", "wildcard any gameweek"],
+)
+def test_the_tree_is_sized_in_the_nodes_a_search_makes(request_):
+    """What the automatic optimizer compares with the MCTS budget."""
+    _, n_nodes = _brute_force(request_)
+
+    assert count_tree_nodes(request_, every_transfer_count=True) == n_nodes
 
 
 @pytest.mark.parametrize("num_thread", [1, 4])
@@ -311,5 +328,5 @@ def test_a_move_being_made_steers_the_next_choice_away():
 
 def test_the_mcts_is_a_named_transfer_optimizer():
     """Adding it is a table entry: `--transfer-optimizer mcts` builds it."""
-    assert TRANSFER_OPTIMIZERS["mcts"] is MCTSOptimizer
+    assert "mcts" in TRANSFER_OPTIMIZERS
     assert isinstance(build_transfer_optimizer("mcts"), MCTSOptimizer)

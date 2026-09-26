@@ -73,6 +73,7 @@ def replay(
     ] = 1,
     num_thread: options.NumThread = None,
     num_iterations: options.NumIterations = None,
+    max_expansions: options.MaxExpansions = None,
     num_generations: options.NumGenerations = None,
     population_size: options.PopulationSize = None,
     num_free_transfers: options.NumFreeTransfers = None,
@@ -109,6 +110,7 @@ def replay(
                 transfer_optimizer,
                 num_thread=num_thread,
                 num_iterations=num_iterations,
+                max_expansions=max_expansions,
             ),
             squad_optimizer=build_squad_optimizer(
                 squad_optimizer,

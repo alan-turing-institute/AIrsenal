@@ -388,6 +388,15 @@ Each run writes a JSON file with `total_points`, `total_points_hit` and
 `replay_season` returns the same results as a `ReplayResult`, if you'd rather compare
 them in Python.
 
-Replay also accepts the optimizer flags (`--num-iterations`, `--num-generations`,
-`--population-size`, `--num-free-transfers`), so changes to the search can be measured
-in the same way as changes to a model.
+Replay also accepts the optimizer flags (`--transfer-optimizer`, `--max-expansions`,
+`--num-iterations`, `--num-generations`, `--population-size`, `--num-free-transfers`),
+so changes to the search can be measured in the same way as changes to a model.
+
+The default transfer optimizer, `auto`, searches the whole plan tree when it is small
+and uses MCTS once the tree has more than twice as many nodes as the MCTS budget
+(`--max-expansions`), which is about from a six-gameweek window on. To compare the
+two searches on the same window, name each with `--transfer-optimizer`. A replay's
+first squad is built from scratch by the genetic algorithm, so two replays start
+from different squads. To compare searches, resume both from the same squad with
+`--resume --gameweek-start 2`, each on a copy of a database that holds only that
+replay's first-gameweek transactions.

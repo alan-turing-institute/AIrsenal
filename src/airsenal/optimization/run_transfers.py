@@ -32,7 +32,7 @@ from airsenal.optimization.protocols import (
 from airsenal.optimization.run_squad import build_new_squad
 from airsenal.optimization.squad_score import SquadScoringConfig
 from airsenal.optimization.transfer_optimizers import (
-    TreeSearchOptimizer,
+    AutoOptimizer,
 )
 from airsenal.remote.discord import post_webhook
 from airsenal.remote.fpl_api import FPLDataFetcher, get_fetcher, require_fpl_team_id
@@ -249,7 +249,7 @@ def run_optimization(
     if constraints is None:
         constraints = TransferConstraints()
     if optimizer is None:
-        optimizer = TreeSearchOptimizer()
+        optimizer = AutoOptimizer()
     if scoring is None:
         scoring = SquadScoringConfig()
     fpl_team_id = require_fpl_team_id(fpl_team_id)

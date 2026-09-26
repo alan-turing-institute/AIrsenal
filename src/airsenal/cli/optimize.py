@@ -95,6 +95,7 @@ def transfers(
     subs: options.Subs = True,
     num_iterations: options.NumIterations = None,
     num_thread: options.NumThread = None,
+    max_expansions: options.MaxExpansions = None,
     # --- output ---
     profile: Profile = False,
     save_plans: SavePlans = None,
@@ -108,6 +109,7 @@ def transfers(
                 transfer_optimizer,
                 num_thread=num_thread,
                 num_iterations=num_iterations,
+                max_expansions=max_expansions,
                 profile=profile,
             ),
             squad_optimizer=build_squad_optimizer(squad_optimizer),

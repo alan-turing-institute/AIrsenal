@@ -230,6 +230,18 @@ NumThread = Annotated[
     ),
 ]
 
+MaxExpansions = Annotated[
+    int | None,
+    typer.Option(
+        min=1,
+        help=(
+            "Most nodes the MCTS makes. Defaults to its own value; the tree search "
+            "makes every node and rejects it."
+        ),
+        rich_help_panel=OPTIMISATION,
+    ),
+]
+
 NumFreeTransfers = Annotated[
     int | None,
     typer.Option(

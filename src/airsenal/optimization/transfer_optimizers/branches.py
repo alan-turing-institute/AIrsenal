@@ -3,10 +3,11 @@ The branches of a transfer plan tree, and what taking one of them scores.
 
 Shared by every transfer optimizer that walks the tree one gameweek at a time:
 `next_gameweek_transfers` says which moves are legal next, `make_best_transfers`
-makes one and scores it, and `count_expected_outputs` sizes the whole tree.
+makes one and scores it, and `count_expected_outputs` and `count_tree_nodes` size
+the whole tree.
 """
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
 
 from airsenal.db.queries.gameweeks import next_gameweek
 from airsenal.game.chips import chips_used_up
@@ -25,6 +26,7 @@ from airsenal.optimization.protocols import (
     DEFAULT_MAX_OPT_TRANSFERS,
     Proposal,
     TransferRequest,
+    TransferSearchRequest,
     TransferStrategy,
 )
 from airsenal.optimization.squad_score import get_discounted_squad_score
@@ -135,46 +137,29 @@ def next_gameweek_transfers(
     )
 
 
-def count_expected_outputs(
+def _tree_levels(
     n_gameweeks: int,
-    gameweek: int | None = None,
-    free_transfers: int = 1,
-    max_total_hit: int | None = None,
-    allow_unused_transfers: bool = False,
-    max_opt_transfers: int = DEFAULT_MAX_OPT_TRANSFERS,
-    chip_schedule: ChipSchedule | None = None,
-    max_free_transfers: int = MAX_FREE_TRANSFERS,
+    gameweek: int,
+    free_transfers: int,
+    max_total_hit: int | None,
+    allow_unused_transfers: bool,
+    max_opt_transfers: int,
+    chip_schedule: ChipSchedule,
+    max_free_transfers: int,
     *,
-    season: str = CURRENT_SEASON,
-    chips_played: Iterable[tuple[int, Chip]] = (),
-    every_transfer_count: bool = True,
-) -> tuple[int, bool]:
+    season: str,
+    chips_played: tuple[tuple[int, Chip], ...],
+    every_transfer_count: bool,
+) -> Iterator[list[tuple[int, int, tuple[GameweekMove, ...]]]]:
     """
-    Count the strategies a search over `n_gameweeks` gameweeks will visit.
+    Each gameweek's nodes of the plan tree, one list per gameweek of the window.
 
-    Args:
-        max_total_hit: Points that may be spent on transfers across the whole
-            window; None for no limit.
-        allow_unused_transfers: If False, strategies that leave a free transfer
-            unused - making none with a full bank of free transfers - are not counted.
-        chips_played: (gameweek, chip) for each chip played before the window.
-
-    Returns:
-        How many strategies will be computed, and whether the baseline strategy
-        falls outside the main tree and so has to be computed separately, which
-        `allow_unused_transfers=False` can cause. The count includes the
-        baseline either way.
+    A node is (free transfers, points hit so far, moves made) - the moves are all
+    that is needed to count branches and to spot the do-nothing baseline among them.
     """
-    gameweek = next_gameweek() if gameweek is None else gameweek
-    chip_schedule = chip_schedule if chip_schedule is not None else ChipSchedule()
-    chips_played = tuple(chips_played)
-
-    # (free transfers, points hit so far, moves made) - the moves are all that is
-    # needed to count branches and to spot the do-nothing baseline among them
     branches: list[tuple[int, int, tuple[GameweekMove, ...]]] = [
         (free_transfers, 0, ())
     ]
-
     for window_gameweek in range(gameweek, gameweek + n_gameweeks):
         new_branches = []
         for ft, hit, moves in branches:
@@ -205,6 +190,57 @@ def count_expected_outputs(
                 for move, new_ft, new_hit, _ in possibilities
             ]
         branches = new_branches
+        yield branches
+
+
+def count_expected_outputs(
+    n_gameweeks: int,
+    gameweek: int | None = None,
+    free_transfers: int = 1,
+    max_total_hit: int | None = None,
+    allow_unused_transfers: bool = False,
+    max_opt_transfers: int = DEFAULT_MAX_OPT_TRANSFERS,
+    chip_schedule: ChipSchedule | None = None,
+    max_free_transfers: int = MAX_FREE_TRANSFERS,
+    *,
+    season: str = CURRENT_SEASON,
+    chips_played: Iterable[tuple[int, Chip]] = (),
+    every_transfer_count: bool = True,
+) -> tuple[int, bool]:
+    """
+    Count the strategies a search over `n_gameweeks` gameweeks will visit.
+
+    Args:
+        max_total_hit: Points that may be spent on transfers across the whole
+            window; None for no limit.
+        allow_unused_transfers: If False, strategies that leave a free transfer
+            unused - making none with a full bank of free transfers - are not counted.
+        chips_played: (gameweek, chip) for each chip played before the window.
+
+    Returns:
+        How many strategies will be computed, and whether the baseline strategy
+        falls outside the main tree and so has to be computed separately, which
+        `allow_unused_transfers=False` can cause. The count includes the
+        baseline either way.
+    """
+    levels = list(
+        _tree_levels(
+            n_gameweeks,
+            next_gameweek() if gameweek is None else gameweek,
+            free_transfers,
+            max_total_hit,
+            allow_unused_transfers,
+            max_opt_transfers,
+            chip_schedule if chip_schedule is not None else ChipSchedule(),
+            max_free_transfers,
+            season=season,
+            chips_played=tuple(chips_played),
+            every_transfer_count=every_transfer_count,
+        )
+    )
+    branches: list[tuple[int, int, tuple[GameweekMove, ...]]] = (
+        levels[-1] if levels else [(free_transfers, 0, ())]
+    )
 
     # allow_unused_transfers=False can remove the baseline above, so add it back if
     # the first strategy is not it. `branches` is empty when the constraints admit
@@ -216,6 +252,34 @@ def count_expected_outputs(
         branches.insert(0, (max_free_transfers, 0, baseline_moves))
 
     return len(branches), baseline_excluded
+
+
+def count_tree_nodes(
+    request: TransferSearchRequest, *, every_transfer_count: bool
+) -> int:
+    """
+    How many nodes an exhaustive search of `request` makes: every partial plan.
+
+    Not only the finished plans `count_expected_outputs` counts: each gameweek's
+    move is a node of its own, and costs about as much to make.
+    """
+    constraints = request.constraints
+    return sum(
+        len(level)
+        for level in _tree_levels(
+            len(request.gameweeks),
+            request.gameweeks[0],
+            request.num_free_transfers,
+            constraints.max_total_hit,
+            constraints.allow_unused_transfers,
+            constraints.max_opt_transfers,
+            request.chip_schedule,
+            constraints.max_free_transfers,
+            season=request.season,
+            chips_played=request.chips_played,
+            every_transfer_count=every_transfer_count,
+        )
+    )
 
 
 def make_best_transfers(

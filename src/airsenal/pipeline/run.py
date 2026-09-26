@@ -27,7 +27,7 @@ from airsenal.optimization.run_squad import build_new_squad
 from airsenal.optimization.run_transfers import run_optimization
 from airsenal.optimization.squad_optimizers import GeneticSquadOptimizer
 from airsenal.optimization.squad_score import SquadScoringConfig
-from airsenal.optimization.transfer_optimizers import TreeSearchOptimizer
+from airsenal.optimization.transfer_optimizers import AutoOptimizer
 from airsenal.pipeline.settings import PipelineSettings, StaleDatabase
 from airsenal.prediction.points_models import build_points_model
 from airsenal.prediction.protocols import PointsModel
@@ -50,7 +50,7 @@ class AIrsenalPipeline:
     """A configured run: what to predict and optimise with, and what to do with it."""
 
     points_model: PointsModel = field(default_factory=build_points_model)
-    transfer_optimizer: TransferOptimizer = field(default_factory=TreeSearchOptimizer)
+    transfer_optimizer: TransferOptimizer = field(default_factory=AutoOptimizer)
     squad_optimizer: SquadOptimizer = field(default_factory=GeneticSquadOptimizer)
     constraints: TransferConstraints = field(default_factory=TransferConstraints)
     scoring: SquadScoringConfig = field(default_factory=SquadScoringConfig)

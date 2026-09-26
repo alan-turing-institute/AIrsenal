@@ -9,7 +9,8 @@ from airsenal.optimization.squad_optimizers import (
     build_squad_optimizer,
 )
 from airsenal.optimization.transfer_optimizers import (
-    DEFAULT_TRANSFER_OPTIMIZER,
+    AutoOptimizer,
+    MCTSConfig,
     TreeSearchConfig,
     build_transfer_optimizer,
 )
@@ -40,7 +41,7 @@ def test_an_unknown_name_lists_the_known_ones(kind):
 
 def test_the_tree_search_flags_reach_the_tree_search():
     optimizer = build_transfer_optimizer(
-        DEFAULT_TRANSFER_OPTIMIZER, num_thread=3, num_iterations=7, profile=True
+        "tree_search", num_thread=3, num_iterations=7, profile=True
     )
     assert optimizer.config.num_thread == 3
     assert optimizer.config.num_iterations == 7
@@ -48,8 +49,48 @@ def test_the_tree_search_flags_reach_the_tree_search():
 
 
 def test_an_unset_tree_search_flag_leaves_the_default_alone():
-    optimizer = build_transfer_optimizer(DEFAULT_TRANSFER_OPTIMIZER, num_thread=3)
+    optimizer = build_transfer_optimizer("tree_search", num_thread=3)
     assert optimizer.config.num_iterations == TreeSearchConfig().num_iterations
+
+
+def test_the_mcts_flags_reach_the_mcts():
+    optimizer = build_transfer_optimizer(
+        "mcts", num_thread=3, num_iterations=7, max_expansions=11
+    )
+    assert optimizer.config.num_thread == 3
+    assert optimizer.config.num_iterations == 7
+    assert optimizer.config.max_expansions == 11
+
+
+def test_an_unset_mcts_flag_leaves_the_default_alone():
+    optimizer = build_transfer_optimizer("mcts", num_thread=3)
+    assert optimizer.config.max_expansions == MCTSConfig().max_expansions
+
+
+def test_the_default_transfer_optimizer_chooses_between_the_two():
+    assert isinstance(build_transfer_optimizer(), AutoOptimizer)
+
+
+def test_each_flag_reaches_whichever_search_the_automatic_one_has_it():
+    optimizer = build_transfer_optimizer(
+        "auto", num_thread=3, num_iterations=7, max_expansions=11, profile=True
+    )
+    assert isinstance(optimizer, AutoOptimizer)
+    for config in (optimizer.tree_search.config, optimizer.mcts.config):
+        assert config.num_thread == 3
+        assert config.num_iterations == 7
+    assert optimizer.mcts.config.max_expansions == 11
+    assert optimizer.tree_search.config.profile is True
+
+
+@pytest.mark.parametrize(
+    ("name", "flag"),
+    [("tree_search", {"max_expansions": 11}), ("mcts", {"profile": True})],
+    ids=["a budget for the tree search", "profiling the mcts"],
+)
+def test_a_flag_the_transfer_optimizer_has_no_use_for_is_an_error(name, flag):
+    with pytest.raises(ConfigError):
+        build_transfer_optimizer(name, **flag)
 
 
 def test_the_genetic_algorithm_flags_reach_the_genetic_algorithm():
