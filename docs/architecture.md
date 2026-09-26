@@ -87,6 +87,7 @@ a row names a module that doesn't exist.
 | `game/enums.py` | `Position` and `Chip` |
 | `game/scoring.py` | FPL's own rules: points per event, `SQUAD_SIZE`, `POINTS_HIT_COST`, free transfer accrual |
 | `game/season.py` | which season it is, and how a season is written |
+| `game/chips.py` | how many of each chip a season gives, and which are used up by a gameweek |
 | `game/mappings.py` | what other data sources call clubs, positions and chips |
 | `core/caching.py` | the query caches, and `clear_query_caches()` |
 | `core/concurrency.py` | starting the transfer search's worker processes (by fork), and the watchdog that reports a stalled worker |
@@ -151,6 +152,7 @@ a row names a module that doesn't exist.
 | `optimization/moves.py` | what can be done in one gameweek: transfers, chips, hits and free transfers |
 | `optimization/plan.py` | `Plan` and `TransferSearchResult`: what a search produces |
 | `optimization/squad_score.py` | what a squad is worth over a window, and `SquadScoringConfig` |
+| `optimization/chip_timing.py` | the rules that decide chip gameweeks for `--chip-heuristic` |
 | `optimization/run_transfers.py` | running a transfer search: everything around the algorithm |
 | `optimization/run_squad.py` | running a from-scratch squad build |
 | `optimization/persist.py` | writing a plan to the `transfer_suggestion` and `transaction` tables |

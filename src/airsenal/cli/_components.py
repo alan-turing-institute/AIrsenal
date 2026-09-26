@@ -11,12 +11,14 @@ def chip_gameweeks(
     free_hit_gameweek: int,
     triple_captain_gameweek: int,
     bench_boost_gameweek: int,
+    heuristic: bool = False,
 ) -> ChipGameweeks:
     return ChipGameweeks(
         wildcard=wildcard_gameweek,
         free_hit=free_hit_gameweek,
         triple_captain=triple_captain_gameweek,
         bench_boost=bench_boost_gameweek,
+        heuristic=heuristic,
     )
 
 

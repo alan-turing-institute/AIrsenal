@@ -5,6 +5,7 @@ Fetching the starting squad, persisting the suggestions and reporting the result
 """
 
 import json
+from dataclasses import replace
 from pathlib import Path
 
 from sqlalchemy.orm import Session
@@ -14,8 +15,11 @@ from airsenal.core.copy import fastcopy
 from airsenal.core.logging import get_logger
 from airsenal.db.queries.players import get_player, get_player_name
 from airsenal.db.session import get_session
+from airsenal.game.chips import chips_used_up
 from airsenal.game.enums import Chip
+from airsenal.game.mappings import chips_by_api_name
 from airsenal.game.season import CURRENT_SEASON
+from airsenal.optimization.chip_timing import chip_gameweeks, decide_chips
 from airsenal.optimization.moves import ChipGameweeks, ChipSchedule
 from airsenal.optimization.persist import fill_suggestion_table, fill_transaction_table
 from airsenal.optimization.plan import Plan
@@ -28,7 +32,7 @@ from airsenal.optimization.protocols import (
 from airsenal.optimization.run_squad import build_new_squad
 from airsenal.optimization.squad_score import SquadScoringConfig
 from airsenal.optimization.transfer_optimizers import (
-    TreeSearchOptimizer,
+    AutoOptimizer,
 )
 from airsenal.remote.discord import post_webhook
 from airsenal.remote.fpl_api import FPLDataFetcher, get_fetcher, require_fpl_team_id
@@ -162,10 +166,61 @@ def squad_for_next_gameweek(
     # Left to default these take the *current* season's next gameweek, which is
     # not this plan's gameweek at all when replaying a past season.
     for pid_out in outcome.players_out:
-        squad.remove_player(pid_out, gameweek=gameweek)
+        squad.remove_player(pid_out, gameweek=gameweek, use_api=use_api)
     for pid_in in outcome.players_in:
-        squad.add_player(pid_in, gameweek=gameweek)
+        # A wildcard or free hit adds fifteen players one at a time, so a wrong
+        # sale price surfaces here as a squad that cannot afford the last few.
+        if not squad.add_player(pid_in, gameweek=gameweek):
+            msg = (
+                f"Could not add player {pid_in} to the gameweek {gameweek} squad, "
+                f"which has {squad.budget} in the bank: the plan's transfers do "
+                "not fit the squad they are applied to."
+            )
+            raise RuntimeError(msg)
     return squad
+
+
+def available_chips(
+    chips: ChipGameweeks,
+    gameweek: int,
+    season: str = CURRENT_SEASON,
+    fpl_team_id: int | None = None,
+    fetcher: FPLDataFetcher | None = None,
+) -> frozenset[Chip]:
+    """
+    The chips the entry has left to play in `gameweek`.
+
+    From the API when given a fetcher, which needs a login; otherwise every chip
+    `chips.played` has not used up, which is what a replay knows.
+    """
+    if fetcher is None:
+        return frozenset(Chip) - set(chips_used_up(chips.played, gameweek, season))
+    names = fetcher.get_available_chips(fpl_team_id)
+    unknown = sorted(set(names) - set(chips_by_api_name))
+    if unknown:
+        msg = f"The FPL API reported chips AIrsenal does not know: {unknown}"
+        raise ValueError(msg)
+    return frozenset(chips_by_api_name[name] for name in names)
+
+
+def _chips_by_heuristic(
+    chips: ChipGameweeks,
+    squad: Squad,
+    gameweeks: list[int],
+    tag: str,
+    season: str = CURRENT_SEASON,
+    fpl_team_id: int | None = None,
+    fetcher: FPLDataFetcher | None = None,
+) -> ChipGameweeks:
+    """The chip gameweeks `chip_timing` decides, keeping what was played before."""
+    available = available_chips(
+        chips, gameweeks[0], season=season, fpl_team_id=fpl_team_id, fetcher=fetcher
+    )
+    decisions = decide_chips(squad, available, gameweeks, tag, season=season)
+    for gameweek, chip, why in decisions:
+        if chip is not None:
+            logger.info("Chip heuristic: %s in gameweek %s - %s", chip, gameweek, why)
+    return replace(chip_gameweeks(decisions), played=chips.played, heuristic=True)
 
 
 def run_optimization(
@@ -187,13 +242,14 @@ def run_optimization(
 
     Each chip gameweek is -1 not to play that chip at all, 0 to let the search
     choose the gameweek, or the gameweek to play it in.
+    `chips.played` are the chips already spent before `gameweeks`.
     """
     if chips is None:
         chips = ChipGameweeks()
     if constraints is None:
         constraints = TransferConstraints()
     if optimizer is None:
-        optimizer = TreeSearchOptimizer()
+        optimizer = AutoOptimizer()
     if scoring is None:
         scoring = SquadScoringConfig()
     fpl_team_id = require_fpl_team_id(fpl_team_id)
@@ -237,6 +293,16 @@ def run_optimization(
             )
         logger.info("Starting with %s free transfers", num_free_transfers)
 
+        if chips.heuristic:
+            chips = _chips_by_heuristic(
+                chips,
+                starting_squad,
+                gameweeks,
+                tag,
+                season=season,
+                fpl_team_id=fpl_team_id,
+                fetcher=fetcher if use_api else None,
+            )
         chip_schedule = ChipSchedule.from_gameweeks(gameweeks, chips)
 
         result = optimizer.search(
@@ -250,6 +316,7 @@ def run_optimization(
                 constraints=constraints,
                 scoring=scoring,
                 squad_optimizer=squad_optimizer,
+                chips_played=chips.played,
             )
         )
 

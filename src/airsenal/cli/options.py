@@ -230,6 +230,18 @@ NumThread = Annotated[
     ),
 ]
 
+MaxExpansions = Annotated[
+    int | None,
+    typer.Option(
+        min=1,
+        help=(
+            "Most nodes the MCTS makes. Defaults to its own value; the tree search "
+            "makes every node and rejects it."
+        ),
+        rich_help_panel=OPTIMISATION,
+    ),
+]
+
 NumFreeTransfers = Annotated[
     int | None,
     typer.Option(
@@ -284,6 +296,15 @@ WildcardGameweek = Annotated[int, _chip_option("Wildcard")]
 FreeHitGameweek = Annotated[int, _chip_option("Free hit")]
 TripleCaptainGameweek = Annotated[int, _chip_option("Triple captain")]
 BenchBoostGameweek = Annotated[int, _chip_option("Bench boost")]
+ChipHeuristic = Annotated[
+    bool,
+    typer.Option(
+        help=(
+            "Choose each chip's gameweek by rules about the fixtures, in place of "
+            "the four chip gameweek options."
+        )
+    ),
+]
 
 # ----------------------------------------------------------------- output ----
 

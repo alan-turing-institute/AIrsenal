@@ -4,16 +4,20 @@ Which moves the tree search branches into, and how many plans that adds up to.
 `next_gameweek_transfers` answers the first and `count_expected_outputs` the second.
 """
 
+import pytest
+
 from airsenal.game.enums import Chip
 from airsenal.optimization.moves import (
     MAX_FREE_TRANSFERS,
     ChipSchedule,
     GameweekChips,
 )
-from airsenal.optimization.transfer_optimizers.tree_search import (
+from airsenal.optimization.transfer_optimizers.branches import (
     count_expected_outputs,
     next_gameweek_transfers,
+    transfer_counts,
 )
+from airsenal.optimization.transfer_optimizers.tree_search import TreeSearchConfig
 
 
 def as_labels(
@@ -667,3 +671,149 @@ def test_count_expected_outputs_with_no_legal_move_is_the_baseline_alone():
     )
     # the baseline falls outside the tree, so the search computes it separately
     assert (count, baseline_excluded) == (1, True)
+
+
+# ------------------- branching on fewer transfer counts -------------------
+
+
+@pytest.mark.parametrize(
+    ("free_transfers", "fewest", "most", "expected"),
+    [
+        (1, 0, 5, [0, 1, 2]),
+        (3, 0, 5, [0, 1, 2, 3]),
+        (5, 1, 5, [1, 2, 5]),
+        # every free transfer is more than may be made
+        (5, 0, 3, [0, 1, 2]),
+        (0, 0, 5, [0, 1, 2]),
+    ],
+)
+def test_only_the_likely_transfer_counts(free_transfers, fewest, most, expected):
+    assert (
+        transfer_counts(free_transfers, fewest, most, every_transfer_count=False)
+        == expected
+    )
+
+
+@pytest.mark.parametrize("free_transfers", range(6))
+@pytest.mark.parametrize("fewest", [0, 1])
+def test_up_to_two_transfers_every_count_is_a_likely_one(free_transfers, fewest):
+    """So with --max-transfers at its default of 2 the tree is unchanged."""
+    assert transfer_counts(
+        free_transfers, fewest, 2, every_transfer_count=False
+    ) == transfer_counts(free_transfers, fewest, 2)
+
+
+def test_the_tree_offers_only_the_likely_counts_when_asked():
+    actual = as_labels(
+        next_gameweek_transfers(
+            4,
+            0,
+            max_total_hit=None,
+            allow_unused_transfers=True,
+            max_opt_transfers=5,
+            max_free_transfers=5,
+            every_transfer_count=False,
+        )
+    )
+    assert [label for label, *_ in actual] == ["0", "1", "2", "4"]
+
+
+def test_the_tree_is_counted_the_way_it_is_searched():
+    """The progress bar's total is the number of plans the workers will finish."""
+    count, _ = count_expected_outputs(
+        2,
+        free_transfers=1,
+        max_total_hit=None,
+        allow_unused_transfers=True,
+        gameweek=1,
+        max_opt_transfers=5,
+        chip_schedule=ChipSchedule(),
+        every_transfer_count=False,
+    )
+    # first gameweek 0, 1 or 2; the second from 2, 1 or 1 free transfers
+    assert count == 3 * 3
+
+
+def test_the_tree_search_branches_on_the_likely_counts_by_default():
+    assert TreeSearchConfig().every_transfer_count is False
+
+
+# ------------------- chips across the two halves of a season -------------------
+
+
+@pytest.mark.parametrize("season", ["2425", "2526"])
+def test_a_wildcard_played_before_the_split_is_offered_again_after_it(season):
+    """
+    In any season: two gameweeks either side of the split, a wildcard in both.
+
+    Plans: (0, 0), (0, W), (W, 0), (W, W) - the second W only because the
+    first was played in the first half. With --max-transfers 0 the moves
+    are no transfers or a wildcard.
+    """
+    count, _ = count_expected_outputs(
+        2,
+        free_transfers=1,
+        max_total_hit=None,
+        allow_unused_transfers=True,
+        gameweek=19,
+        max_opt_transfers=0,
+        chip_schedule=ChipSchedule.from_gameweeks([19, 20], {Chip.WILDCARD: 0}),
+        season=season,
+    )
+    assert count == 4
+
+
+@pytest.mark.parametrize(("season", "expected"), [("2526", 4), ("2425", 3)])
+def test_a_bench_boost_comes_back_after_the_split_from_2025_26(season, expected):
+    """(0, 0), (0, B0), (B0, 0), and (B0, B0) only where there are two."""
+    count, _ = count_expected_outputs(
+        2,
+        free_transfers=1,
+        max_total_hit=None,
+        allow_unused_transfers=True,
+        gameweek=19,
+        max_opt_transfers=0,
+        chip_schedule=ChipSchedule.from_gameweeks([19, 20], {Chip.BENCH_BOOST: 0}),
+        season=season,
+    )
+    assert count == expected
+
+
+def test_within_one_half_a_chip_is_played_once():
+    count, _ = count_expected_outputs(
+        2,
+        free_transfers=1,
+        max_total_hit=None,
+        allow_unused_transfers=True,
+        gameweek=5,
+        max_opt_transfers=0,
+        chip_schedule=ChipSchedule.from_gameweeks([5, 6], {Chip.WILDCARD: 0}),
+        season="2526",
+    )
+    # (0, 0), (0, W), (W, 0)
+    assert count == 3
+
+
+@pytest.mark.parametrize(
+    ("played_in", "window_start", "expected"),
+    [
+        # spent earlier in the same half: no wildcard in the window
+        (5, 6, 1),
+        # spent in the first half: the second half's wildcard is there
+        (18, 20, 2),
+    ],
+)
+def test_a_chip_played_before_the_window_counts(played_in, window_start, expected):
+    """(0) alone, or (0) and (W): --max-transfers 0 over one gameweek."""
+    count, _ = count_expected_outputs(
+        1,
+        free_transfers=1,
+        max_total_hit=None,
+        allow_unused_transfers=True,
+        gameweek=window_start,
+        max_opt_transfers=0,
+        chip_schedule=ChipSchedule.from_gameweeks([window_start], {Chip.WILDCARD: 0}),
+        season="2526",
+        chips_played=[(played_in, Chip.WILDCARD)],
+    )
+    assert count == expected

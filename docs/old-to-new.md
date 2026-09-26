@@ -40,8 +40,8 @@ Where each old module's contents went. The number in brackets is how many names 
 | `airsenal/framework/fpl_team_utils.py` | removed (3) |
 | `airsenal/framework/multiprocessing_utils.py` | `core/concurrency.py` (9) |
 | `airsenal/framework/optimization_squad.py` | `optimization/squad_optimizers/genetic_algorithm.py` (3) |
-| `airsenal/framework/optimization_transfers.py` | `optimization/strategies/single.py` (1), `optimization/strategies/double.py` (1), `optimization/strategies/random_search.py` (1), `optimization/transfer_optimizers/tree_search.py` (1) |
-| `airsenal/framework/optimization_utils.py` | `optimization/persist.py` (4), `optimization/moves.py` (2), `squad/history.py` (2), `optimization/squad_score.py` (2), removed (2), `optimization/transfer_optimizers/tree_search.py` (2), `db/queries/tags.py` (1), `optimization/plan.py` (1), `optimization/protocols.py` (1) |
+| `airsenal/framework/optimization_transfers.py` | `optimization/strategies/single.py` (1), `optimization/strategies/double.py` (1), `optimization/strategies/random_search.py` (1), `optimization/transfer_optimizers/branches.py` (1) |
+| `airsenal/framework/optimization_utils.py` | `optimization/persist.py` (4), `optimization/moves.py` (2), `squad/history.py` (2), `optimization/squad_score.py` (2), removed (2), `optimization/transfer_optimizers/branches.py` (2), `db/queries/tags.py` (1), `optimization/plan.py` (1), `optimization/protocols.py` (1) |
 | `airsenal/framework/player.py` | `squad/player.py` (4), removed (2) |
 | `airsenal/framework/player_model.py` | `prediction/player_models/conjugate.py` (5), `prediction/protocols.py` (3), removed (3), `prediction/player_models/mcmc.py` (3), `prediction/player_models/scaling.py` (2) |
 | `airsenal/framework/prediction_utils.py` | `db/queries/scores.py` (4), removed (3), `prediction/features.py` (2), `prediction/point_components/bonus.py` (2), `prediction/point_components/def_con.py` (2), `prediction/point_components/saves.py` (2), `prediction/point_components/cards.py` (2), `prediction/player_models/fitting.py` (2), `prediction/point_components/attacking.py` (1), `prediction/point_components/defending.py` (1), `prediction/points_models/component.py` (1), `prediction/run.py` (1), `prediction/point_components/empirical_bayes.py` (1) |
@@ -157,7 +157,7 @@ Where each old module's contents went. The number in brackets is how many names 
 | `airsenal/framework/optimization_transfers.py` | `make_optimum_single_transfer` | `optimization/strategies/single.py::make_optimum_single_transfer` | same name |
 | `airsenal/framework/optimization_transfers.py` | `make_optimum_double_transfer` | `optimization/strategies/double.py::make_optimum_double_transfer` | same name |
 | `airsenal/framework/optimization_transfers.py` | `make_random_transfers` | `optimization/strategies/random_search.py::make_random_transfers` | same name |
-| `airsenal/framework/optimization_transfers.py` | `make_best_transfers` | `optimization/transfer_optimizers/tree_search.py::_make_best_transfers` | folded into tree search, now private |
+| `airsenal/framework/optimization_transfers.py` | `make_best_transfers` | `optimization/transfer_optimizers/branches.py::make_best_transfers` | same name, shared by the transfer optimizers |
 | `airsenal/framework/optimization_utils.py` | `check_tag_valid` | `db/queries/tags.py::check_tag_valid` | same name |
 | `airsenal/framework/optimization_utils.py` | `calc_points_hit` | `optimization/moves.py::calc_points_hit` | same name |
 | `airsenal/framework/optimization_utils.py` | `calc_free_transfers` | `optimization/moves.py::calc_free_transfers` | same name |
@@ -172,8 +172,8 @@ Where each old module's contents went. The number in brackets is how many names 
 | `airsenal/framework/optimization_utils.py` | `strategy_involves_N_or_more_transfers_in_gw` | removed | removed: no callers |
 | `airsenal/framework/optimization_utils.py` | `make_strategy_id` | removed | removed: no callers |
 | `airsenal/framework/optimization_utils.py` | `get_num_increments` | `optimization/protocols.py::progress_total` | split into each strategy's num_increments, read via progress_total |
-| `airsenal/framework/optimization_utils.py` | `next_week_transfers` | `optimization/transfer_optimizers/tree_search.py::next_gameweek_transfers` | renamed and moved to tree search |
-| `airsenal/framework/optimization_utils.py` | `count_expected_outputs` | `optimization/transfer_optimizers/tree_search.py::count_expected_outputs` | same name |
+| `airsenal/framework/optimization_utils.py` | `next_week_transfers` | `optimization/transfer_optimizers/branches.py::next_gameweek_transfers` | renamed |
+| `airsenal/framework/optimization_utils.py` | `count_expected_outputs` | `optimization/transfer_optimizers/branches.py::count_expected_outputs` | same name |
 | `airsenal/framework/optimization_utils.py` | `get_discount_factor` | `optimization/squad_score.py::get_discount_factor` | same name |
 | `airsenal/framework/player.py` | `CandidatePlayer` | `squad/player.py::CandidatePlayer` | same name |
 | `airsenal/framework/player.py` | `CandidatePlayer.calc_predicted_points` | `squad/player.py::CandidatePlayer.calc_predicted_points` | same name |
