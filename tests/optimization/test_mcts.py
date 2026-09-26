@@ -298,14 +298,17 @@ def test_a_node_is_not_closed_off_while_a_move_below_it_is_out():
     assert len(claims) > 1
 
     for node, branch in claims[:-1]:
-        made = mcts._make_node(request, search.config, node.squad, branch[0], 0)
+        made = mcts._make_node(
+            request, search.config, node.squad, branch[0], 0, search.candidates
+        )
         search.complete(node, branch, made)
         assert not search.root.exhausted
 
     node, branch = claims[-1]
-    search.complete(
-        node, branch, mcts._make_node(request, search.config, node.squad, branch[0], 0)
+    made = mcts._make_node(
+        request, search.config, node.squad, branch[0], 0, search.candidates
     )
+    search.complete(node, branch, made)
     assert search.root.exhausted
 
 

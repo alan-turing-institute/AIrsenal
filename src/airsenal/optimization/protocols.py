@@ -24,6 +24,7 @@ from airsenal.game.scoring import MAX_FREE_TRANSFERS
 from airsenal.optimization.moves import ChipSchedule, GameweekMove
 from airsenal.optimization.plan import Plan, TransferSearchResult
 from airsenal.optimization.squad_score import SquadScoringConfig
+from airsenal.squad.player import CandidateCache
 from airsenal.squad.squad import Squad
 
 # Defaults for `TransferRequest` and `TransferConstraints` below, and for the tree
@@ -95,6 +96,10 @@ class TransferRequest:
     scoring: SquadScoringConfig = field(default_factory=SquadScoringConfig)
     squad_optimizer: "SquadOptimizer | None" = None
     progress: StepCounter | None = None
+    # Candidate players built once for the whole search, which can share them
+    # because every price and club is read as at `root_gameweek`. None builds
+    # them afresh for this request alone.
+    candidates: CandidateCache | None = None
 
     @property
     def chip(self) -> Chip | None:

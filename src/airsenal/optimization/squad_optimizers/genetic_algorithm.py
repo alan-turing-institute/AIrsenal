@@ -1,5 +1,6 @@
 """The DEAP genetic algorithm itself: pick a whole squad, generation by generation."""
 
+import copy
 import random
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass, replace
@@ -8,7 +9,6 @@ import numpy as np
 from deap import algorithms, base, creator, tools
 from sqlalchemy.orm import Session
 
-from airsenal.core.copy import fastcopy
 from airsenal.core.logging import get_logger
 from airsenal.db.models import Player
 from airsenal.db.queries.players import list_players
@@ -20,7 +20,7 @@ from airsenal.optimization.squad_score import (
     SquadScoringConfig,
     get_discounted_squad_score,
 )
-from airsenal.squad.player import DummyPlayer
+from airsenal.squad.player import CandidateCache, DummyPlayer
 from airsenal.squad.squad import TOTAL_PER_POSITION, Squad
 
 logger = get_logger(__name__)
@@ -123,6 +123,11 @@ class SquadOpt:
 
         self.base_squad = base_squad
         self.max_transfers = max_transfers
+        # every squad the search builds is priced as at the root gameweek, so
+        # each player is built once, however many individuals include them
+        self.candidates = CandidateCache(
+            self.root_gameweek, base_squad.season if base_squad else season
+        )
         self._base_ids = (
             {p.player_id for p in base_squad.players} if base_squad else set()
         )
@@ -244,19 +249,14 @@ class SquadOpt:
         Over budget, too many players from one club, a duplicated player, or more
         than `max_transfers` changes to the base squad are all illegal.
         """
-        player_ids = [self.players[int(idx)].player_id for idx in individual]
+        players = [self.players[int(idx)] for idx in individual]
         if self.base_squad is not None:
-            return self._transfer_from_base(player_ids)
+            return self._transfer_from_base(players)
 
         squad = Squad(budget=self.scoring.budget, season=self.season)
 
-        for player_id in player_ids:
-            add_ok = squad.add_player(
-                player_id,
-                gameweek=self.root_gameweek,
-                dbsession=self.dbsession,
-            )
-            if not add_ok:
+        for player in players:
+            if not self._add(squad, player):
                 return None
 
         for dp in self.dummies():
@@ -265,17 +265,25 @@ class SquadOpt:
 
         return squad if squad.is_complete() else None
 
-    def _transfer_from_base(self, player_ids: list[int]) -> Squad | None:
-        """The base squad with the transfers that make it `player_ids`."""
+    def _add(self, squad: Squad, player: Player) -> bool:
+        """Add `player` to `squad` if it fits, from the candidates already built."""
+        candidate = self.candidates.get(player)
+        if not squad.can_add(candidate):
+            return False
+        return squad.add_player(copy.copy(candidate), gameweek=self.root_gameweek)
+
+    def _transfer_from_base(self, players: list[Player]) -> Squad | None:
+        """The base squad with the transfers that make it `players`."""
         assert self.base_squad is not None
         assert self.max_transfers is not None
+        player_ids = [player.player_id for player in players]
         if len(set(player_ids)) != len(player_ids):
             return None
-        players_in = [pid for pid in player_ids if pid not in self._base_ids]
+        players_in = [p for p in players if p.player_id not in self._base_ids]
         if len(players_in) > self.max_transfers:
             return None
 
-        squad = fastcopy(self.base_squad)
+        squad = self.base_squad.copy()
         for player_id in self._base_ids.difference(player_ids):
             squad.remove_player(
                 player_id,
@@ -283,10 +291,8 @@ class SquadOpt:
                 gameweek=self.root_gameweek,
                 dbsession=self.dbsession,
             )
-        for player_id in players_in:
-            if not squad.add_player(
-                player_id, gameweek=self.root_gameweek, dbsession=self.dbsession
-            ):
+        for player in players_in:
+            if not self._add(squad, player):
                 return None
         return squad if squad.is_complete() else None
 
