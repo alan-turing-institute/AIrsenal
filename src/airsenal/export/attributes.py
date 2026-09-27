@@ -180,7 +180,7 @@ def save_attributes_from_api(now: datetime, fetcher: FPLDataFetcher) -> None:
                 [
                     timestamp,
                     CURRENT_SEASON,
-                    next_gameweek(),
+                    next_gameweek(fetcher=fetcher),
                     team,
                     position,
                     player_api_id,
