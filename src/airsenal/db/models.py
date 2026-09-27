@@ -98,6 +98,8 @@ class Player(Base):
     name: Mapped[str100]
     display_name: Mapped[str100 | None]
     opta_code: Mapped[str | None]
+    birth_date: Mapped[str | None]  # yyyy-mm-dd
+    region: Mapped[str | None]  # their nationality as FPL gives it, e.g. "England"
     attributes: Mapped[list["PlayerAttributes"]] = relationship(
         back_populates="player",
         order_by="(PlayerAttributes.season.desc(), PlayerAttributes.gameweek.desc())",
@@ -298,6 +300,7 @@ class PlayerAttributes(Base):
     direct_freekicks_order: Mapped[int | None]
     corners_and_indirect_freekicks_order: Mapped[int | None]
     fpl_expected_points: Mapped[float | None]  # the API's `ep_next`
+    team_join_date: Mapped[str | None]  # yyyy-mm-dd they joined `team`
 
     def __repr__(self) -> str:
         return (

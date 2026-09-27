@@ -47,6 +47,20 @@ def _fetcher_with_history(rounds: list[int]) -> FPLDataFetcher:
     return fetcher
 
 
+def test_region_names_are_keyed_by_id_and_fetched_once():
+    fetcher = FPLDataFetcher()
+    calls = []
+
+    def get(*args, **kwargs):
+        calls.append(args)
+        return [{"id": 241, "name": "England", "iso_code_short": "EN"}]
+
+    fetcher._get = get
+    assert fetcher.get_region_names() == {241: "England"}
+    assert fetcher.get_region_names() == {241: "England"}
+    assert len(calls) == 1
+
+
 def test_a_players_whole_history_comes_back_keyed_by_gameweek():
     """
     Without a gameweek, the answer is every gameweek, not the last one.

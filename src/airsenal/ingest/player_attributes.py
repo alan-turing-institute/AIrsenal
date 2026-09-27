@@ -236,6 +236,7 @@ def fill_attributes_table_from_api(
     n_players = fetcher.get_current_summary_data()["total_players"]
 
     input_data = fetcher.get_player_summary_data()
+    region_names = fetcher.get_region_names()
 
     for player_api_id in track(input_data, description=f"PLAYER ATTRIBUTES {season}"):
         # find the player in the player table
@@ -251,6 +252,10 @@ def fill_attributes_table_from_api(
 
         if player.opta_code is None and "opta_code" in p_summary:
             player.opta_code = p_summary["opta_code"]
+        if p_summary.get("birth_date") is not None:
+            player.birth_date = p_summary["birth_date"]
+        if p_summary.get("region") is not None:
+            player.region = region_names.get(p_summary["region"])
 
         position = positions[p_summary["element_type"]]
 
@@ -294,6 +299,7 @@ def fill_attributes_table_from_api(
             p_summary, "corners_and_indirect_freekicks_order"
         )
         pa.fpl_expected_points = _optional_float(p_summary, "ep_next")
+        pa.team_join_date = p_summary.get("team_join_date")
         dbsession.add(pa)
 
         # now get data for previous gameweeks

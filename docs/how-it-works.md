@@ -26,16 +26,19 @@ The schema is defined with `sqlalchemy` in `airsenal.db.models`.
 **Player data**
 
 - **Player** — name and ID for every player who has been in the game in the last three
-  seasons. For players active in the current season the ID matches the FPL player ID.
+  seasons. For players active in the current season the ID matches the FPL player ID,
+  and the FPL API also gives their `birth_date` and `region` (their nationality, e.g.
+  "England").
 - **PlayerAttributes** — per-gameweek attributes: FPL price, position, team, and
   availability (`news`, `chance_of_playing_next_round`, `return_gameweek`) as it was
   in that gameweek. Everything that needs to know whether a player is available reads
   these availability columns, for past seasons as well as the current one.
   Rows filled from the live API also have what only the live API gives: FPL's `status`
   code (available, doubtful, injured, suspended or unavailable), the set-piece orders
-  (`penalties_order`, `direct_freekicks_order`, `corners_and_indirect_freekicks_order`)
-  and FPL's own expected points, `fpl_expected_points` (the API's `ep_next`). These are
-  empty for past seasons and for gameweeks the database was built after.
+  (`penalties_order`, `direct_freekicks_order`, `corners_and_indirect_freekicks_order`),
+  FPL's own expected points, `fpl_expected_points` (the API's `ep_next`), and the date
+  the player joined their club, `team_join_date`. These are empty for past seasons and
+  for gameweeks the database was built after.
   Managers are included too, with position `MNG`, but AIrsenal doesn't model them.
   Code that reads a position checks `Position.is_modelled`, so managers are left out of
   the data the models are fitted to and are not given predictions.

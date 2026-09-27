@@ -30,6 +30,7 @@ FPL_GET_TRANSFERS_URL = API_HOME + "/entry/{}/transfers/"
 FPL_SET_TRANSFERS_URL = API_HOME + "/transfers/"
 FPL_FIXTURE_URL = f"{API_HOME}/fixtures/"
 FPL_MYTEAM_URL = API_HOME + "/my-team/{}/"
+FPL_REGIONS_URL = f"{API_HOME}/regions/"
 
 
 class FPLDataFetcher:
@@ -54,6 +55,7 @@ class FPLDataFetcher:
         self.fpl_league_data: dict[str, Any] = {}
         self.fpl_team_data: dict[int, dict[str, Any]] = {}  # squad, by gameweek
         self.fixture_data: list[dict[str, Any]] = []
+        self.region_names: dict[int, str] = {}  # by region id
 
         self.FPL_TEAM_ID = FPL_TEAM_ID if fpl_team_id is None else fpl_team_id
         self.FPL_LEAGUE_ID = FPL_LEAGUE_ID
@@ -310,6 +312,14 @@ class FPLDataFetcher:
         if not self.fixture_data:
             self.fixture_data = self._get(FPL_FIXTURE_URL)
         return self.fixture_data
+
+    def get_region_names(self) -> dict[int, str]:
+        """The name for each id a player's `region` can take, e.g. "England"."""
+        if not self.region_names:
+            self.region_names = {
+                region["id"]: region["name"] for region in self._get(FPL_REGIONS_URL)
+            }
+        return self.region_names
 
     def get_lineup(self) -> dict[str, Any]:
         """The entry's current lineup. Requires login."""

@@ -52,7 +52,12 @@ def test_get_event_data():
 
 
 def test_get_player_summary_data():
-    """One row per player, keyed by api id: `ingest/players.py`, `squad/pricing.py`."""
+    """
+    One row per player, keyed by api id.
+
+    Read by `ingest/players.py`, `squad/pricing.py`, `ingest/player_attributes.py`
+    and `ingest/player_risks.py`.
+    """
     data = FPLDataFetcher().get_player_summary_data()
     assert len(data) > 0
     player = next(iter(data.values()))
@@ -65,7 +70,22 @@ def test_get_player_summary_data():
         "now_cost",
         "news",
         "chance_of_playing_next_round",
+        "status",
+        "penalties_order",
+        "direct_freekicks_order",
+        "corners_and_indirect_freekicks_order",
+        "ep_next",
+        "birth_date",
+        "region",
+        "team_join_date",
+        "scout_risks",
     } <= player.keys()
+
+
+def test_get_region_names():
+    """The names for a player's `region` id: `ingest/player_attributes.py`."""
+    names = FPLDataFetcher().get_region_names()
+    assert names[241] == "England"
 
 
 def test_get_current_team_data():
