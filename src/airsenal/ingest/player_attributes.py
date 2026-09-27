@@ -89,6 +89,12 @@ def _optional_int(data: dict[str, Any], key: str) -> int | None:
     return int(value) if value is not None else None
 
 
+def _optional_float(data: dict[str, Any], key: str) -> float | None:
+    """The value under `key` as a float, or None if it is missing or null."""
+    value = data.get(key)
+    return float(value) if value is not None else None
+
+
 def fill_attributes_table_from_file(
     detail_data: dict[str, Any], season: str, dbsession: Session | None = None
 ) -> None:
@@ -281,6 +287,13 @@ def fill_attributes_table_from_api(
                 season=season,
                 dbsession=dbsession,
             )
+        pa.status = p_summary.get("status")
+        pa.penalties_order = _optional_int(p_summary, "penalties_order")
+        pa.direct_freekicks_order = _optional_int(p_summary, "direct_freekicks_order")
+        pa.corners_and_indirect_freekicks_order = _optional_int(
+            p_summary, "corners_and_indirect_freekicks_order"
+        )
+        pa.fpl_expected_points = _optional_float(p_summary, "ep_next")
         dbsession.add(pa)
 
         # now get data for previous gameweeks

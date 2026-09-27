@@ -13,6 +13,7 @@ from airsenal.db.models import (
     Fixture,
     Player,
     PlayerAttributes,
+    PlayerRisk,
     PlayerScore,
     Result,
     Team,
@@ -43,10 +44,25 @@ def dump_db() -> None:
         "selected",
         "transfers_in",
         "transfers_out",
+        "status",
+        "penalties_order",
+        "direct_freekicks_order",
+        "corners_and_indirect_freekicks_order",
+        "fpl_expected_points",
     ]
     save_table_fields(
         "player_attributes.csv", player_attributes_fieldnames, PlayerAttributes
     )
+
+    player_risk_fieldnames = [
+        "id",
+        "player_id",
+        "season",
+        "gameweek",
+        "property",
+        "notes",
+    ]
+    save_table_fields("player_risks.csv", player_risk_fieldnames, PlayerRisk)
 
     fixture_fieldnames = [
         "fixture_id",
@@ -130,6 +146,7 @@ def dump_db() -> None:
         "defensive_contribution",
         "recoveries",
         "tackles",
+        "starts",
     ]
     save_table_fields("player_scores.csv", player_score_fieldnames, PlayerScore)
 

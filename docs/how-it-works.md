@@ -31,12 +31,19 @@ The schema is defined with `sqlalchemy` in `airsenal.db.models`.
   availability (`news`, `chance_of_playing_next_round`, `return_gameweek`) as it was
   in that gameweek. Everything that needs to know whether a player is available reads
   these availability columns, for past seasons as well as the current one.
+  Rows filled from the live API also have what only the live API gives: FPL's `status`
+  code (available, doubtful, injured, suspended or unavailable), the set-piece orders
+  (`penalties_order`, `direct_freekicks_order`, `corners_and_indirect_freekicks_order`)
+  and FPL's own expected points, `fpl_expected_points` (the API's `ep_next`). These are
+  empty for past seasons and for gameweeks the database was built after.
   Managers are included too, with position `MNG`, but AIrsenal doesn't model them.
   Code that reads a position checks `Position.is_modelled`, so managers are left out of
   the data the models are fitted to and are not given predictions.
+- **PlayerRisk** — gameweeks the FPL API says in advance that a player will miss (its
+  `scout_risks`), such as a loanee who can't face their parent club. Current season only.
 - **PlayerScore** — per-match stats: points, goals, goals conceded, assists, bonus,
   minutes and others, including the expected goals and assists the FPL API has recorded
-  since 2223. Both xG models get a team's expected goals by summing its players' values.
+  since 2223, and whether the player started (`starts`) since 2526. Both xG models get a team's expected goals by summing its players' values.
   `news` and `chance_of_playing` are the player's availability on the morning of the
   match, which is used to leave matches a player missed while unavailable out of their
   recent minutes.

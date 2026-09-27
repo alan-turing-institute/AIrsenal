@@ -290,11 +290,47 @@ class PlayerAttributes(Base):
     transfers_in: Mapped[int | None]
     transfers_out: Mapped[int | None]
 
+    # Only the live API gives these, so only rows it filled have them: the next
+    # gameweek's, as of the last update before its deadline.
+    # a, d, i, s or u: available, doubtful, injured, suspended, unavailable
+    status: Mapped[str | None]
+    penalties_order: Mapped[int | None]
+    direct_freekicks_order: Mapped[int | None]
+    corners_and_indirect_freekicks_order: Mapped[int | None]
+    fpl_expected_points: Mapped[float | None]  # the API's `ep_next`
+
     def __repr__(self) -> str:
         return (
             f"{self.player} ({self.season} GW{self.gameweek}): "
             f"£{self.price / 10}, {self.team}, {self.position}"
         )
+
+
+class PlayerRisk(Base):
+    """A gameweek the FPL API says in advance a player will miss (its `scout_risks`)."""
+
+    __tablename__ = "player_risk"
+    __table_args__ = (
+        UniqueConstraint(
+            "player_id",
+            "season",
+            "gameweek",
+            "property",
+            name="uq_player_risk_player_season_gw_property",
+        ),
+    )
+    id: Mapped[intpk] = mapped_column(autoincrement=True)
+    player: Mapped["Player"] = relationship()
+    player_id: Mapped[int] = mapped_column(
+        ForeignKey("player.player_id"), nullable=False
+    )
+    season: Mapped[str100]
+    gameweek: Mapped[int | None]
+    property: Mapped[str100]  # the kind of risk, e.g. "loan_ineligible"
+    notes: Mapped[str | None]
+
+    def __repr__(self) -> str:
+        return f"{self.player} ({self.season} GW{self.gameweek}): {self.property}"
 
 
 # --- Recorded and predicted player performance in a fixture ---
@@ -349,6 +385,7 @@ class PlayerScore(Base):
     clearances_blocks_interceptions: Mapped[int | None]
     tackles: Mapped[int | None]
     recoveries: Mapped[int | None]
+    starts: Mapped[int | None]  # 1 if they started the match; from 2526
 
     # what was known about the player's availability for this match
     chance_of_playing: Mapped[int | None]

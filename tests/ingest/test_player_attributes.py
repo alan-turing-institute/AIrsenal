@@ -84,6 +84,11 @@ class FakeFetcher:
                 "news": "",
                 "chance_of_playing_next_round": None,
                 "opta_code": f"p{api_id}",
+                "status": "d",
+                "penalties_order": 1,
+                "direct_freekicks_order": None,
+                "corners_and_indirect_freekicks_order": 2,
+                "ep_next": "4.5",
             }
             for api_id in self._api_ids
         }
@@ -144,6 +149,17 @@ def test_the_second_players_row_carries_that_players_own_price(dbsession, api):
     rows = current_rows(dbsession)
     assert rows[1].price == 151
     assert rows[2].price == 152
+
+
+def test_the_live_only_fields_land_on_the_gameweek_being_filled(dbsession, api):
+    """Status, set-piece orders and FPL's expected points, with nulls kept as nulls."""
+    fill_attributes_table_from_api(SEASON, dbsession=dbsession)
+    row = current_rows(dbsession)[1]
+    assert row.status == "d"
+    assert row.penalties_order == 1
+    assert row.direct_freekicks_order is None
+    assert row.corners_and_indirect_freekicks_order == 2
+    assert row.fpl_expected_points == 4.5
 
 
 def test_nothing_is_written_for_a_gameweek_that_was_only_walked_over(dbsession, api):
