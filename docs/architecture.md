@@ -135,6 +135,7 @@ a row names a module that doesn't exist.
 | `ingest/players.py` | filling `player` |
 | `ingest/player_mappings.py` | filling `player_mapping`, the other names a player goes by |
 | `ingest/player_attributes.py` | filling `player_attributes`: price, team, position and availability per gameweek |
+| `ingest/player_risks.py` | filling `player_risk`: the gameweeks the FPL API says a player will miss |
 | `ingest/attributes_history.py` | reading the daily player attributes snapshots |
 | `ingest/absences.py` | reading the packaged absences CSVs |
 | `ingest/fixtures.py` | filling `fixture` |

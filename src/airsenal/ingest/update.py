@@ -32,6 +32,7 @@ from airsenal.ingest.player_attributes import (
     fill_availability_for_season,
 )
 from airsenal.ingest.player_mappings import add_mappings
+from airsenal.ingest.player_risks import fill_player_risks_from_api
 from airsenal.ingest.player_scores import fill_playerscores_from_api
 from airsenal.ingest.players import find_player_in_table
 from airsenal.ingest.results import fill_results_from_api
@@ -162,7 +163,7 @@ def add_players_to_db(
 
 def update_attributes(season: str, dbsession: Session) -> None:
     """
-    Refresh player attributes from the last complete gameweek onwards.
+    Refresh player attributes from the last complete gameweek onwards, and risks.
 
     That gameweek is included rather than skipped: prices and availability can
     change after its matches finish but before the next deadline.
@@ -179,6 +180,7 @@ def update_attributes(season: str, dbsession: Session) -> None:
     # The API answers for the next gameweek only, so the gameweeks already played
     # get their availability the way a past season's do.
     fill_availability_for_season(season, dbsession)
+    fill_player_risks_from_api(season, dbsession=dbsession)
 
 
 def update_db(

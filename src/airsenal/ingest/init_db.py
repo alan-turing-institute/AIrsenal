@@ -10,6 +10,7 @@ from airsenal.game.season import CURRENT_SEASON, get_past_seasons, sort_seasons
 from airsenal.ingest.fifa_ratings import make_fifa_ratings_table
 from airsenal.ingest.fixtures import make_fixture_table
 from airsenal.ingest.player_attributes import make_attributes_table
+from airsenal.ingest.player_risks import fill_player_risks_from_api
 from airsenal.ingest.player_scores import make_playerscore_table
 from airsenal.ingest.players import make_player_table
 from airsenal.ingest.results import make_result_table
@@ -48,6 +49,7 @@ def make_init_db(
         make_playerscore_table(seasons=seasons, dbsession=dbsession)
 
         if CURRENT_SEASON in seasons:
+            fill_player_risks_from_api(CURRENT_SEASON, dbsession=dbsession)
             if fpl_team_id is None:
                 msg = "FPL team ID must be specified in args, config, or env"
                 raise ValueError(msg)

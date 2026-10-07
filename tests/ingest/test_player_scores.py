@@ -16,7 +16,14 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from airsenal.core.caching import clear_query_caches
-from airsenal.db.models import Base, Fixture, Player, PlayerAttributes
+from airsenal.db.models import (
+    Base,
+    Fixture,
+    Player,
+    PlayerAttributes,
+    PlayerScore,
+    Result,
+)
 from airsenal.ingest import player_scores
 from airsenal.ingest.player_scores import (
     fill_playerscores_from_api,
@@ -276,3 +283,28 @@ def test_an_opponent_from_the_api_is_named_from_that_season(monkeypatch, dbsessi
     )
 
     assert lookups == [(3, past_season, dbsession)]
+
+
+def test_whether_a_player_started_is_copied_from_the_match_data(monkeypatch, dbsession):
+    """`starts` is in the API and the packaged files, and needs no mapping."""
+    monkeypatch.setattr(
+        player_scores, "get_availability_for_fixture", lambda *_a: (None, None)
+    )
+    score = PlayerScore()
+    data = dict.fromkeys(player_scores._API_STATS.values(), 0) | {"starts": 1}
+
+    player_scores._fill_score(
+        score,
+        data,
+        player_scores._API_STATS,
+        player_scores._extended_features(),
+        None,
+        _fixture_on(dbsession, KICKOFFS[0]),
+        Result(),
+        "CHE",
+        _player(),
+        "ARS",
+        dbsession,
+    )
+
+    assert score.starts == 1
