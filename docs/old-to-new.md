@@ -351,7 +351,7 @@ Where each old module's contents went. The number in brackets is how many names 
 | `airsenal/scripts/data_sanity_checks.py` | `fixture_num_assists` | `ingest/checks.py::fixture_num_assists` | same name |
 | `airsenal/scripts/data_sanity_checks.py` | `fixture_num_conceded` | `ingest/checks.py::fixture_num_conceded` | same name |
 | `airsenal/scripts/data_sanity_checks.py` | `run_all_checks` | `ingest/checks.py::run_all_checks` | same name |
-| `airsenal/scripts/dump_db_contents.py` | `save_table_fields` | `export/db_dump.py::save_table_fields` | same name |
+| `airsenal/scripts/dump_db_contents.py` | `save_table_fields` | `export/db_dump.py::save_table` | renamed; the columns come from the table |
 | `airsenal/scripts/dump_db_contents.py` | `write_rows_to_csv` | `export/db_dump.py::write_rows_to_csv` | same name |
 | `airsenal/scripts/duplicate_names.py` | `find_duplicate_names` | `tools/duplicate_names.py::find_duplicate_names` | moved to tools/ |
 | `airsenal/scripts/fill_absence_table.py` | `load_absences` | `ingest/absences.py::get_availability_from_absences` | CSV now feeds PlayerAttributes availability |
