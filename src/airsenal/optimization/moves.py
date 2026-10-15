@@ -7,7 +7,7 @@ also written in a compact string form (``int | "W" | "F" | "T0".."T2" |
 """
 
 from collections.abc import Iterable, Mapping
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from airsenal.game.enums import Chip
 from airsenal.game.scoring import (
@@ -180,13 +180,24 @@ class ChipGameweeks:
     """
     Which gameweek to play each chip in, as the CLI takes it.
 
-    -1 never, 0 any gameweek the search likes, n that gameweek.
+    -1 never, 0 any gameweek the search likes, n that gameweek. `played` is
+    (gameweek, chip) for each chip already spent, which a replay accumulates as
+    it goes; a live run leaves it empty and says -1 for a spent chip instead.
+
+    With `heuristic`, the four gameweeks are not used: once the squad is known,
+    `optimization.chip_timing` decides them from the fixtures.
     """
 
     wildcard: int = -1
     free_hit: int = -1
     triple_captain: int = -1
     bench_boost: int = -1
+    played: tuple[tuple[int, Chip], ...] = ()
+    heuristic: bool = False
+
+    def after_playing(self, chip: Chip, gameweek: int) -> "ChipGameweeks":
+        """The same chip gameweeks, with `chip` spent in `gameweek`."""
+        return replace(self, played=(*self.played, (gameweek, chip)))
 
     def items(self) -> list[tuple[Chip, int]]:
         """Each chip with the gameweek it is wanted in."""

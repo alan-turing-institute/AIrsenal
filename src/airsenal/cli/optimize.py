@@ -84,6 +84,7 @@ def transfers(
     free_hit_gameweek: options.FreeHitGameweek = -1,
     triple_captain_gameweek: options.TripleCaptainGameweek = -1,
     bench_boost_gameweek: options.BenchBoostGameweek = -1,
+    chip_heuristic: options.ChipHeuristic = False,
     # --- optimisation ---
     transfer_optimizer: options.TransferOptimizer = DEFAULT_TRANSFER_OPTIMIZER,
     squad_optimizer: options.SquadOptimizer = DEFAULT_SQUAD_OPTIMIZER,
@@ -94,6 +95,7 @@ def transfers(
     subs: options.Subs = True,
     num_iterations: options.NumIterations = None,
     num_thread: options.NumThread = None,
+    max_expansions: options.MaxExpansions = None,
     # --- output ---
     profile: Profile = False,
     save_plans: SavePlans = None,
@@ -107,6 +109,7 @@ def transfers(
                 transfer_optimizer,
                 num_thread=num_thread,
                 num_iterations=num_iterations,
+                max_expansions=max_expansions,
                 profile=profile,
             ),
             squad_optimizer=build_squad_optimizer(squad_optimizer),
@@ -123,6 +126,7 @@ def transfers(
                     free_hit_gameweek,
                     triple_captain_gameweek,
                     bench_boost_gameweek,
+                    heuristic=chip_heuristic,
                 ),
                 num_free_transfers=num_free_transfers,
                 save_plans=save_plans,

@@ -274,7 +274,11 @@ class Squad:
 
     def optimize_lineup(self, tag: str, gameweek: int) -> None:
         if not self.is_complete():
-            msg = "Squad is incomplete"
+            names = ", ".join(str(p) for p in self.players)
+            msg = (
+                f"Squad is incomplete: {len(self.players)} of {SQUAD_SIZE} players "
+                f"({names}), with {self.budget} in the bank"
+            )
             raise RuntimeError(msg)
 
         for p in self.players:

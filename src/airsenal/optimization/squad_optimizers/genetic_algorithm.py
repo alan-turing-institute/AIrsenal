@@ -8,6 +8,7 @@ import numpy as np
 from deap import algorithms, base, creator, tools
 from sqlalchemy.orm import Session
 
+from airsenal.core.copy import fastcopy
 from airsenal.core.logging import get_logger
 from airsenal.db.models import Player
 from airsenal.db.queries.players import list_players
@@ -23,6 +24,10 @@ from airsenal.squad.player import DummyPlayer
 from airsenal.squad.squad import TOTAL_PER_POSITION, Squad
 
 logger = get_logger(__name__)
+
+# What an illegal squad scores when making transfers: below anything a legal squad
+# can score, so the two never tie, but finite, so DEAP's statistics stay defined.
+ILLEGAL_TRANSFER_FITNESS = -1e9
 
 
 @dataclass(frozen=True)
@@ -73,6 +78,11 @@ class SquadOpt:
         root_gameweek: The gameweek every price and club is read as at, and the
             origin the discount decays from. Defaults to the first of `gameweeks`;
             see `optimization.protocols.SquadRequest.root_gameweek`.
+        base_squad: A squad to make transfers from, rather than building one from
+            nothing. An individual is then the squad after at most
+            `max_transfers` of its players are replaced: the rest keep what was
+            paid for them, and each sale adds its sell price to the bank.
+            `scoring.budget` is not used, and every position is optimised.
     """
 
     def __init__(
@@ -87,8 +97,13 @@ class SquadOpt:
         players_per_position: dict[str, int] = TOTAL_PER_POSITION,
         *,
         scoring: SquadScoringConfig,
+        base_squad: Squad | None = None,
+        max_transfers: int | None = None,
         dbsession: Session | None = None,
     ) -> None:
+        if (base_squad is None) != (max_transfers is None):
+            msg = "base_squad and max_transfers are given together or not at all"
+            raise ValueError(msg)
         self.dbsession = dbsession
         self.season = season
         self.gameweeks = gameweeks
@@ -106,10 +121,31 @@ class SquadOpt:
         self.dummy_per_position = self._get_dummy_per_position()
         self.scoring = scoring
 
+        self.base_squad = base_squad
+        self.max_transfers = max_transfers
+        self._base_ids = (
+            {p.player_id for p in base_squad.players} if base_squad else set()
+        )
+
         self.players, self.position_idx = self._get_player_list()
         if remove_zero:
             self._remove_zero_pts()
         self.n_available_players = len(self.players)
+
+        # the position each gene holds, in the order individuals are laid out
+        self._slot_positions = [
+            pos for pos in self.positions for _ in range(players_per_position[pos])
+        ]
+        self._sale_prices: dict[int, int] = {}
+        self._seed: list[int] = []
+        if base_squad is not None:
+            self._sale_prices = {
+                p.player_id: base_squad.get_sell_price_for_player(
+                    p, gameweek=self.root_gameweek, dbsession=dbsession
+                )
+                for p in base_squad.players
+            }
+            self._seed = self._base_squad_indices()
 
         self._setup_deap()
 
@@ -126,6 +162,31 @@ class SquadOpt:
         # Needed by the mutation operator, registered in optimize()
         self.low_bounds, self.up_bounds = self._get_mutation_bounds()
 
+    def _base_squad_indices(self) -> list[int]:
+        """
+        The base squad as an individual, as far as the candidate pool holds it.
+
+        A player the pool does not have - one no longer listed as at the root
+        gameweek - is stood in for by a random player in the same position, which
+        counts as one of the transfers.
+        """
+        assert self.base_squad is not None
+        index_of = {p.player_id: i for i, p in enumerate(self.players)}
+        by_position: dict[Position, list[int]] = {pos: [] for pos in self.positions}
+        for p in self.base_squad.players:
+            by_position[Position(p.position)].append(p.player_id)
+
+        indices = []
+        for pos in self._slot_positions:
+            index = None
+            while by_position[pos] and index is None:
+                index = index_of.get(by_position[pos].pop())
+            if index is None:
+                pos_min, pos_max = self.position_idx[pos]
+                index = random.randint(pos_min, pos_max)
+            indices.append(index)
+        return indices
+
     def _create_individual(self) -> list[int]:
         """
         A random starting squad, as indices into `self.players`.
@@ -133,7 +194,21 @@ class SquadOpt:
         The list is grouped by position and each group is drawn from that
         position's contiguous slice, so an individual is always positionally
         valid even before the budget is checked.
+
+        Making transfers, it is the base squad with up to `max_transfers` slots
+        redrawn. Drawn from scratch, almost no individual would be within that
+        many transfers of the base squad, and the search would have no valid
+        squad to start from.
         """
+        if self.base_squad is not None:
+            assert self.max_transfers is not None
+            individual = list(self._seed)
+            n_changes = random.randint(0, self.max_transfers)
+            for slot in random.sample(range(len(individual)), n_changes):
+                pos_min, pos_max = self.position_idx[self._slot_positions[slot]]
+                individual[slot] = random.randint(pos_min, pos_max)
+            return creator.AirsenalIndividual(individual)
+
         individual = []
         for pos in self.positions:
             pos_min, pos_max = self.position_idx[pos]
@@ -162,29 +237,72 @@ class SquadOpt:
 
         return low_bounds, up_bounds
 
-    def _evaluate_individual(self, individual: list[int]) -> tuple[float]:
+    def build_squad(self, individual: list[int]) -> Squad | None:
         """
-        The squad's discounted score, or 0.0 if it is not a legal squad.
+        The squad an individual stands for, or None if it is not a legal squad.
 
-        Over budget, too many players from one club, or a duplicated player all
-        score zero rather than raising, which is how the GA discards them.
+        Over budget, too many players from one club, a duplicated player, or more
+        than `max_transfers` changes to the base squad are all illegal.
         """
+        player_ids = [self.players[int(idx)].player_id for idx in individual]
+        if self.base_squad is not None:
+            return self._transfer_from_base(player_ids)
+
         squad = Squad(budget=self.scoring.budget, season=self.season)
 
-        for idx in individual:
+        for player_id in player_ids:
             add_ok = squad.add_player(
-                self.players[int(idx)].player_id,
+                player_id,
                 gameweek=self.root_gameweek,
                 dbsession=self.dbsession,
             )
             if not add_ok:
-                return (0.0,)
+                return None
 
         for dp in self.dummies():
             if not squad.add_player(dp):
-                return (0.0,)
+                return None
 
-        if not squad.is_complete():
+        return squad if squad.is_complete() else None
+
+    def _transfer_from_base(self, player_ids: list[int]) -> Squad | None:
+        """The base squad with the transfers that make it `player_ids`."""
+        assert self.base_squad is not None
+        assert self.max_transfers is not None
+        if len(set(player_ids)) != len(player_ids):
+            return None
+        players_in = [pid for pid in player_ids if pid not in self._base_ids]
+        if len(players_in) > self.max_transfers:
+            return None
+
+        squad = fastcopy(self.base_squad)
+        for player_id in self._base_ids.difference(player_ids):
+            squad.remove_player(
+                player_id,
+                price=self._sale_prices[player_id],
+                gameweek=self.root_gameweek,
+                dbsession=self.dbsession,
+            )
+        for player_id in players_in:
+            if not squad.add_player(
+                player_id, gameweek=self.root_gameweek, dbsession=self.dbsession
+            ):
+                return None
+        return squad if squad.is_complete() else None
+
+    def _evaluate_individual(self, individual: list[int]) -> tuple[float]:
+        """
+        The squad's discounted score, or 0.0 if it is not a legal squad.
+
+        An illegal squad scores zero rather than raising, which is how the GA
+        discards it; see `build_squad`. Making transfers, it scores
+        `ILLEGAL_TRANSFER_FITNESS` instead, so it can never tie with a legal
+        squad that scores nothing.
+        """
+        squad = self.build_squad(individual)
+        if squad is None:
+            if self.base_squad is not None:
+                return (ILLEGAL_TRANSFER_FITNESS,)
             return (0.0,)
 
         score = get_discounted_squad_score(
@@ -231,7 +349,12 @@ class SquadOpt:
         for pos in self.positions:
             first, last = self.position_idx[pos]
             candidates = self.players[first : last + 1]
-            scoring = [p for p in candidates if self._total_points(p) > 0]
+            # the base squad's own players stay, so keeping one is always possible
+            scoring = [
+                p
+                for p in candidates
+                if p.player_id in self._base_ids or self._total_points(p) > 0
+            ]
             if len(scoring) < self.players_per_position[pos]:
                 logger.warning(
                     "Only %d %s players have predicted points; considering all %d.",
@@ -315,6 +438,10 @@ class SquadOpt:
         )
 
         population = self.toolbox.population(n=config.population_size)
+        if self.base_squad is not None:
+            # Making no transfers is always legal, so the search always has at
+            # least one valid squad to return.
+            population[0] = creator.AirsenalIndividual(self._seed)
 
         stats = tools.Statistics(lambda ind: ind.fitness.values)
         stats.register("avg", np.mean)
@@ -342,6 +469,15 @@ class SquadOpt:
 
         best_individual = hall_of_fame[0]
         best_fitness = best_individual.fitness.values[0]
+        if best_fitness <= ILLEGAL_TRANSFER_FITNESS:
+            msg = (
+                f"The transfer search found no legal squad within "
+                f"{self.max_transfers} transfers of the base squad: every one of "
+                f"{config.population_size} individuals over {config.generations} "
+                "generations broke the budget, the club limit or the transfer "
+                "limit."
+            )
+            raise RuntimeError(msg)
 
         return best_individual, best_fitness
 

@@ -18,10 +18,11 @@ from typing import Protocol
 
 from sqlalchemy.orm.session import Session
 
+from airsenal.game.chips import chips_used_up
 from airsenal.game.enums import Chip
 from airsenal.game.scoring import MAX_FREE_TRANSFERS
 from airsenal.optimization.moves import ChipSchedule, GameweekMove
-from airsenal.optimization.plan import TransferSearchResult
+from airsenal.optimization.plan import Plan, TransferSearchResult
 from airsenal.optimization.squad_score import SquadScoringConfig
 from airsenal.squad.squad import Squad
 
@@ -226,6 +227,15 @@ class TransferSearchRequest:
     # handles wildcards and free hits needs one. None means the default whole-squad
     # optimizer; `FullSquadStrategy` is the single place that resolves it.
     squad_optimizer: "SquadOptimizer | None" = None
+    # (gameweek, chip) for each chip the entry played before the window, so a
+    # search does not offer one again in the half of the season it belonged to.
+    chips_played: tuple[tuple[int, Chip], ...] = ()
+
+    def chips_used_up(self, plan: Plan, gameweek: int) -> tuple[Chip, ...]:
+        """The chips with nothing left to play in `gameweek`, after `plan`."""
+        return chips_used_up(
+            (*self.chips_played, *plan.chips_by_gameweek), gameweek, self.season
+        )
 
 
 class TransferOptimizer(Protocol):

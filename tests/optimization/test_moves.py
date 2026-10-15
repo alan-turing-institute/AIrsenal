@@ -4,6 +4,7 @@ import pytest
 
 from airsenal.game.enums import Chip
 from airsenal.optimization.moves import (
+    ChipGameweeks,
     ChipSchedule,
     GameweekChips,
     GameweekMove,
@@ -128,3 +129,13 @@ def test_chip_schedule_accepts_chip_names_as_strings():
     # This is the shape the CLI hands over.
     schedule = ChipSchedule.from_gameweeks([1, 2], {"wildcard": 2, "free_hit": -1})
     assert schedule.for_gameweek(2) == GameweekChips(Chip.WILDCARD)
+
+
+def test_playing_a_chip_is_remembered_and_nothing_else_changes():
+    chips = ChipGameweeks(wildcard=0, bench_boost=12)
+
+    after = chips.after_playing(Chip.WILDCARD, 7).after_playing(Chip.FREE_HIT, 9)
+
+    assert after.played == ((7, Chip.WILDCARD), (9, Chip.FREE_HIT))
+    assert after.items() == chips.items()
+    assert chips.played == ()

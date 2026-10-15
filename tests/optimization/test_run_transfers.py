@@ -5,7 +5,7 @@ import pytest
 from airsenal.game.enums import Chip
 from airsenal.game.season import CURRENT_SEASON
 from airsenal.optimization import run_transfers as rt
-from airsenal.optimization.moves import GameweekMove
+from airsenal.optimization.moves import ChipGameweeks, GameweekChips, GameweekMove
 from airsenal.optimization.plan import (
     GameweekOutcome,
     Plan,
@@ -100,8 +100,10 @@ class RecordingOptimizer:
 
     def __init__(self, plan: Plan) -> None:
         self.result = TransferSearchResult(best=plan, baseline=plan)
+        self.requests = []
 
-    def search(self, request) -> TransferSearchResult:  # noqa: ARG002
+    def search(self, request) -> TransferSearchResult:
+        self.requests.append(request)
         return self.result
 
 
@@ -151,6 +153,39 @@ def test_only_a_real_run_posts_to_discord(
     assert len(posted) == n_posts
 
 
+def test_the_search_plays_the_chips_the_heuristic_decides(monkeypatch, fill_players):
+    """The chips the heuristic picks are pinned, and the ones played are kept."""
+    decided = []
+
+    def decide_chips(squad, available, gameweeks, tag, season=None):
+        decided.append(available)
+        return [(1, None, ""), (2, Chip.FREE_HIT, "a blank")]
+
+    monkeypatch.setattr(rt, "decide_chips", decide_chips)
+    plan = Plan(root_gameweek=1, outcomes=(_outcome(1, GameweekMove(1), (0,), (30,)),))
+    optimizer = RecordingOptimizer(plan)
+    played = ((1, Chip.WILDCARD),)
+    with session_scope() as ts:
+        _stub_reporting(monkeypatch, [], ts)
+        run_optimization(
+            gameweeks=[1, 2],
+            tag="test_chip_heuristic",
+            season="2526",
+            fpl_team_id=4321,
+            chips=ChipGameweeks(free_hit=0, played=played, heuristic=True),
+            optimizer=optimizer,
+            is_replay=True,
+        )
+
+    assert decided == [frozenset(Chip) - {Chip.WILDCARD}]
+    (request,) = optimizer.requests
+    assert request.chip_schedule.for_gameweek(1) == GameweekChips()
+    assert request.chip_schedule.for_gameweek(2) == GameweekChips(
+        chip_to_play=Chip.FREE_HIT
+    )
+    assert request.chips_played == played
+
+
 class _RecordingSquad:
     """A Squad stand-in that records the gameweek each move was priced at."""
 
@@ -185,3 +220,41 @@ def test_the_resulting_squad_is_priced_at_the_gameweek_of_the_move(monkeypatch):
 
     assert recorder.removed_in == [7]
     assert recorder.added_in == [7]
+
+
+def test_the_resulting_squad_sells_at_the_live_price_when_using_the_api(monkeypatch):
+    """A live squad's sale prices come from the API, as the search's did."""
+    sold_with_api = []
+
+    class _Squad(_RecordingSquad):
+        def remove_player(self, player_id, price=None, gameweek=None, **kwargs):
+            sold_with_api.append(kwargs.get("use_api"))
+            return super().remove_player(player_id, price, gameweek)
+
+    monkeypatch.setattr(rt, "get_starting_squad", lambda **kwargs: _Squad())
+    plan = Plan(root_gameweek=7, outcomes=(_outcome(7, GameweekMove(1), (0,), (30,)),))
+
+    rt.squad_for_next_gameweek(plan, use_api=True)
+
+    assert sold_with_api == [True]
+
+
+def test_a_player_the_squad_cannot_take_fails_loudly(monkeypatch):
+    """
+    Not an incomplete squad that fails later, somewhere unrelated.
+
+    A wrong sale price leaves a wildcard's rebuild short of money partway
+    through, and the squad used to be returned a player short.
+    """
+
+    class _FullSquad(_RecordingSquad):
+        budget = 0
+
+        def add_player(self, player, price=None, gameweek=None, **kwargs):  # noqa: ARG002
+            return False
+
+    monkeypatch.setattr(rt, "get_starting_squad", lambda **kwargs: _FullSquad())
+    plan = Plan(root_gameweek=7, outcomes=(_outcome(7, GameweekMove(1), (0,), (30,)),))
+
+    with pytest.raises(RuntimeError, match="Could not add player 30"):
+        rt.squad_for_next_gameweek(plan, season="2223")
