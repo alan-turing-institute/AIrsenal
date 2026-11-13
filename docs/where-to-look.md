@@ -52,7 +52,7 @@ module and line number that wrote it, e.g. `airsenal.prediction.run:112`.
 | change what a goal, assist, clean sheet or save is worth | `game/scoring.py` |
 | change how free transfers accrue, or what a hit costs | `free_transfers_after` and `POINTS_HIT_COST` in `game/scoring.py`. The search applies them in `calc_free_transfers` in `optimization/moves.py`; `get_free_transfers` in `squad/state.py` works out how many the user currently has |
 | change squad rules: budget, players per club, players per position | the `check_*` methods of `Squad`, and `TOTAL_PER_POSITION`, in `squad/squad.py`; the budget is in `SquadScoringConfig` in `optimization/squad_score.py` |
-| change how chips work | `Chip` in `game/enums.py`, `optimization/moves.py` for when they can be played, and `chip_gameweeks` in `cli/_components.py` for the flags |
+| change how chips work | `Chip` in `game/enums.py`, `game/chips.py` for how many a season gives and when they expire, `optimization/moves.py` for when they can be played, `optimization/chip_timing.py` for the rules behind `--chip-heuristic`, and `chip_gameweeks` in `cli/_components.py` for the flags |
 | change how the current season is decided | `get_current_season` in `game/season.py` |
 | match a club or position name from another data source | `game/mappings.py` |
 
@@ -87,7 +87,7 @@ module and line number that wrote it, e.g. `airsenal.prediction.run:112`.
 | I want to… | start at |
 |---|---|
 | change how transfers are chosen in a gameweek | `optimization/strategies/`, one module per strategy |
-| change how transfers across several gameweeks are searched | `optimization/transfer_optimizers/tree_search.py` |
+| change how transfers across several gameweeks are searched | `optimization/transfer_optimizers/`, one module per search; the moves allowed in each gameweek, and what each one scores, are in `branches.py` |
 | change how a squad's score over several gameweeks is calculated, e.g. substitute weights or discounting later gameweeks | `optimization/squad_score.py` |
 | change the limit on total hits, or other transfer constraints | `optimization/protocols.py`, and `transfer_constraints` in `cli/_components.py` |
 | change how a squad is built from scratch | `optimization/squad_optimizers/` |

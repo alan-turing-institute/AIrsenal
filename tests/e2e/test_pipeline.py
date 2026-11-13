@@ -25,8 +25,8 @@ from airsenal.optimization.squad_optimizers.genetic_algorithm import (
 )
 from airsenal.optimization.squad_score import SquadScoringConfig
 from airsenal.optimization.strategies import DEFAULT_STRATEGIES
-from airsenal.optimization.transfer_optimizers.tree_search import (
-    _make_best_transfers,
+from airsenal.optimization.transfer_optimizers.branches import (
+    make_best_transfers,
 )
 from airsenal.prediction.player_models import (
     build_player_model,
@@ -184,7 +184,7 @@ def _request(move, squad, prediction_tag, num_iterations=100):
 
 def _best_transfers(request):
     """One node of the tree, reached directly."""
-    return _make_best_transfers(request, DEFAULT_STRATEGIES.create(request.move))
+    return make_best_transfers(request, DEFAULT_STRATEGIES.create(request.move))
 
 
 @pytest.fixture(scope="module")

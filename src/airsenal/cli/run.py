@@ -87,6 +87,7 @@ def run(
     transfer_optimizer: options.TransferOptimizer = DEFAULT_TRANSFER_OPTIMIZER,
     squad_optimizer: options.SquadOptimizer = DEFAULT_SQUAD_OPTIMIZER,
     num_thread: options.NumThread = None,
+    max_expansions: options.MaxExpansions = None,
     max_transfers: options.MaxTransfers = DEFAULT_MAX_OPT_TRANSFERS,
     max_hit: options.MaxHit = DEFAULT_MAX_TOTAL_HIT,
     allow_unused: options.AllowUnused = False,
@@ -95,6 +96,7 @@ def run(
     free_hit_gameweek: options.FreeHitGameweek = -1,
     triple_captain_gameweek: options.TripleCaptainGameweek = -1,
     bench_boost_gameweek: options.BenchBoostGameweek = -1,
+    chip_heuristic: options.ChipHeuristic = False,
     # --- output ---
     apply_transfers: ApplyTransfers = False,
     yes: options.Yes = False,
@@ -109,7 +111,7 @@ def run(
             epsilon=epsilon,
         ),
         transfer_optimizer=build_transfer_optimizer(
-            transfer_optimizer, num_thread=num_thread
+            transfer_optimizer, num_thread=num_thread, max_expansions=max_expansions
         ),
         squad_optimizer=build_squad_optimizer(squad_optimizer),
         constraints=transfer_constraints(max_hit, allow_unused, max_transfers),
@@ -123,6 +125,7 @@ def run(
                 free_hit_gameweek,
                 triple_captain_gameweek,
                 bench_boost_gameweek,
+                heuristic=chip_heuristic,
             ),
             database=DatabaseSettings(
                 clean=clean,

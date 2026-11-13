@@ -22,10 +22,11 @@ from airsenal.optimization.strategies import (
 )
 
 
-def test_all_five_strategies_are_registered():
+def test_all_six_strategies_are_registered():
     assert sorted(TRANSFER_STRATEGIES) == [
         "double",
         "full_squad",
+        "genetic",
         "none",
         "random",
         "single",
@@ -54,14 +55,14 @@ def test_unknown_strategy_lists_the_valid_ones():
         (GameweekMove(0), "none"),
         (GameweekMove(1), "single"),
         (GameweekMove(2), "double"),
-        (GameweekMove(3), "random"),
-        (GameweekMove(15), "random"),
+        (GameweekMove(3), "genetic"),
+        (GameweekMove(15), "genetic"),
         (GameweekMove(chip=Chip.WILDCARD), "full_squad"),
         (GameweekMove(chip=Chip.FREE_HIT), "full_squad"),
         (GameweekMove(0, Chip.BENCH_BOOST), "none"),
         (GameweekMove(1, Chip.BENCH_BOOST), "single"),
         (GameweekMove(2, Chip.TRIPLE_CAPTAIN), "double"),
-        (GameweekMove(4, Chip.TRIPLE_CAPTAIN), "random"),
+        (GameweekMove(4, Chip.TRIPLE_CAPTAIN), "genetic"),
     ],
 )
 def test_strategy_name_for(move, expected):
