@@ -39,7 +39,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12", "3.14"]  # test oldest and latest supported versions
+        python-version: ["3.12", "3.15"]  # test oldest and latest supported versions
         runs-on: [ubuntu-latest, macos-latest]
 
     steps:
